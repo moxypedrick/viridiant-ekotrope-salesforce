@@ -1,0 +1,31 @@
+@isTest
+private class SERH_uploadToBuildingRegistryTest {
+    static testMethod void batchableTest(){
+        Integer listLength = 0;
+                //might have to insert some accounts for lines 108ish
+        Account testacct = new Account(name='Ecosouth Green Building Services', Ekotrope_ID__c='PKYGl435');
+            insert(testacct);
+                Contact joeTesta = new Contact(LastName = 'Testa', FirstName = 'Joe', accountid=testacct.id);
+
+        insert(joeTesta);
+        //check if RP&S is in there:
+        
+        system.debug('JoeTestas Id in SF is ' + joeTesta.id + ', Ecousouths id is '+testacct.id);
+        Qualifications_del__c joesQual = new Qualifications_del__c(Qualifications_for__c=joeTesta.id, HERS_RTIN_Rater_Identification_Number__c='9740236', SERH_HERS_Rater_or_HERS_Rater_Candidate__c='Yes');
+        insert(joesQual);//eiErrhtd
+        insert(new Project__c(recordtypeid='0120B000000t8JVQAY', name='Ray Ter', Ekotrope_Id__c = 'eightdig', Project_status__c = 'In Progress'));
+		//insert(new Project__c(recordtypeid='0120B000000t8JVQAY', name='Ray Ter', Ekotrope_Id__c = 'eightdig', Project_status__c = 'In Progress'));
+        insert(new Project__c(recordtypeid='0120B000000t8JVQAY', name='Ray Ter', Ekotrope_Id__c = 'enull_id', Project_status__c = 'In Progress'));
+        Test.startTest();
+        	//initialize the updater and give it some batches.
+            SERH_uploadToBuildingRegistry updater = new SERH_uploadToBuildingRegistry();
+        	updater.setAuthorization('authorization token');
+    	
+        	Id batchId = Database.executeBatch(updater,3);
+            
+        Test.stopTest();
+        //check the records were updated correctly
+
+        System.debug([select count() from SERH_Data__c where upload_date__c = today]);
+    }	 
+}

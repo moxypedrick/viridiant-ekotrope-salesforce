@@ -1,0 +1,303 @@
+public class serhQaReportWrapperClass {
+
+    public List<cContact> contactList{get; set;}
+
+    public Integer year{get;set;}
+
+    public List<cContact> getContacts(){
+        map<String, cContact> mapNametoWrapper = new map<String, cContact>();
+        contactList = null;
+        //year = System.Today().year();
+        system.debug(year);
+        if(year == null){
+            year = System.Today().year();
+        } else {
+            year = year;
+        }
+
+        Date Start_Date = Date.newInstance(year, 1, 1);
+        Date End_Date = Date.newInstance(year, 12, 31);
+        String yearStr = string.valueof(year);
+        system.debug(yearStr);
+
+        if(contactList == null){
+
+            contactList = new List<cContact>();
+
+            for(AggregateResult pRegFile: [select HERS_Rater__r.name, count(id)
+                                           from project__c
+                                           Where (EC_Registration_Date__c >= :Start_Date
+                                                  and EC_Registration_Date__c <= :End_Date
+                                           and recordtypeid = '0120B000000t8JVQAY')
+
+                                           or (recordtypeid = '0120B000000t8JVQAY'
+                                           and Project_Status__c = 'pending review'
+                                              and EC_Registration_Date__c = Null)
+
+                                           or (recordtypeid = '0120B000000t8JVQAY'
+                                           and Project_Status__c = 'in progress'
+                                              and EC_Registration_Date__c = Null)
+                                           Group By HERS_Rater__r.name]){
+                                               String RaterName = string.valueof(pRegFile.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.TotalFiles = Double.valueOf(pRegFile.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).TotalFiles = Double.valueOf(pRegFile.get('expr0'));
+                                                  }
+                                           }
+            for(AggregateResult pRegField: [select Rating_Field_Inspector__r.name, count(id)
+                                           from project__c
+                                           Where (EC_Registration_Date__c >= :Start_Date
+                                                  and EC_Registration_Date__c <= :End_Date
+                                           and recordtypeid = '0120B000000t8JVQAY')
+
+                                            or (recordtypeid = '0120B000000t8JVQAY'
+                                           and Project_Status__c = 'pending review'
+                                               and EC_Registration_Date__c = Null)
+
+                                            or (recordtypeid = '0120B000000t8JVQAY'
+                                           and Project_Status__c = 'in progress'
+                                               and EC_Registration_Date__c = Null)
+                                           Group By Rating_Field_Inspector__r.name]){
+                                               String FieldRaterName = string.valueof(pRegField.get('name'));
+                                               if(mapNametoWrapper.get(FieldRaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.TotalFields = Double.valueOf(pRegField.get('expr0'));
+                                                   Contact.Name = FieldRaterName;
+                                                   mapNametoWrapper.put(FieldRaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(FieldRaterName).TotalFields = Double.valueOf(pRegField.get('expr0'));
+                                                   }
+                                           }
+            for(AggregateResult pEstarField: [select Rating_Field_Inspector__r.name, count(id)
+                                           from project__c
+                                           Where (EC_Registration_Date__c >= :Start_Date
+                                                  and EC_Registration_Date__c <= :End_Date
+                                           and Energy_Star_v3__c = 'pass'
+                                           and recordtypeid = '0120B000000t8JVQAY')
+
+                                              or (recordtypeid = '0120B000000t8JVQAY'
+                                           and Energy_Star_v3__c = 'pass'
+                                           and Project_Status__c = 'pending review'
+                                                 and EC_Registration_Date__c = Null)
+
+                                              or (recordtypeid = '0120B000000t8JVQAY'
+                                           and Energy_Star_v3__c = 'pass'
+                                           and Project_Status__c = 'in progress'
+                                                 and EC_Registration_Date__c = Null)
+                                           Group By Rating_Field_Inspector__r.name]){
+                                               String FieldRaterName = string.valueof(pEstarField.get('name'));
+                                               if(mapNametoWrapper.get(FieldRaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.ESTARfield = Double.valueOf(pEstarField.get('expr0'));
+                                                   Contact.Name = FieldRaterName;
+                                                   mapNametoWrapper.put(FieldRaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(FieldRaterName).ESTARfield = Double.valueOf(pEstarField.get('expr0'));
+                                                   }
+                                               //mapNametoWrapper.get(FieldRaterName).ESTARfield = Double.valueOf(pEstarField.get('expr0'));
+                                           }
+            for(AggregateResult pEstarFile: [select HERS_Rater__r.name, count(id)
+                                           from project__c
+                                           Where (EC_Registration_Date__c >= :Start_Date
+                                                  and EC_Registration_Date__c <= :End_Date
+                                           and Energy_Star_v3__c = 'pass'
+                                           and recordtypeid = '0120B000000t8JVQAY')
+
+                                             or (recordtypeid = '0120B000000t8JVQAY'
+                                           and Energy_Star_v3__c = 'pass'
+                                           and Project_Status__c = 'pending review'
+                                                and EC_Registration_Date__c = Null)
+
+                                             or (recordtypeid = '0120B000000t8JVQAY'
+                                           and Energy_Star_v3__c = 'pass'
+                                           and Project_Status__c = 'in progress'
+                                                and EC_Registration_Date__c = Null)
+                                           Group By HERS_Rater__r.name]){
+                                               String RaterName = string.valueof(pEstarFile.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.ESTARfiles = Double.valueOf(pEstarFile.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).ESTARfiles = Double.valueOf(pEstarFile.get('expr0'));
+                                                   }
+                                               //mapNametoWrapper.get(RaterName).ESTARfiles = Double.valueOf(pEstarFile.get('expr0'));
+                                             }
+            for(AggregateResult pEstarFileQA: [select HERS_Rater_Name_SERH__r.name, count(id)
+                                           from inspections__c
+                                           Where QA_Year_SERH__c = :yearStr
+                                           and Energy_Star__c = TRUE
+                                           and recordTypeID = '0120B0000005kLZQAY'
+                                           Group By HERS_Rater_Name_SERH__r.name]){
+                                               String RaterName = string.valueof(pEstarFileQA.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.ESTARfileQaComplete = Double.valueOf(pEstarFileQA.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).ESTARfileQaComplete = Double.valueOf(pEstarFileQA.get('expr0'));
+                                                  }
+
+
+                                               //mapNametoWrapper.get(RaterName).ESTARfileQaComplete = Double.valueOf(pEstarFileQA.get('expr0'));
+                                           }
+
+            for(AggregateResult pEstarFieldQA: [select HERS_Rater_Name_SERH__r.name, count(id)
+                                           from inspections__c
+                                           Where QA_Year_SERH__c = :yearStr
+                                           and Energy_Star__c = TRUE
+                                           and recordTypeID = '0120B0000005kLU'
+                                           Group By HERS_Rater_Name_SERH__r.name]){
+                                               String RaterName = string.valueof(pEstarFieldQA.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.ESTARfieldQaComplete = Double.valueOf(pEstarFieldQA.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).ESTARfieldQaComplete = Double.valueOf(pEstarFieldQA.get('expr0'));
+                                                   }
+                                              //mapNametoWrapper.get(RaterName).ESTARfieldQaComplete = Double.valueOf(pEstarFieldQA.get('expr0'));
+                                           }
+             for(AggregateResult pFileQA: [select HERS_Rater_Name_SERH__r.name, count(id)
+                                           from inspections__c
+                                           Where QA_Year_SERH__c = :yearStr
+                                           and recordTypeID = '0120B0000005kLZQAY'
+                                           Group By HERS_Rater_Name_SERH__r.name]){
+                                               String RaterName = string.valueof(pFileQA.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.TotalFileQaComplete = Double.valueOf(pFileQA.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).TotalFileQaComplete = Double.valueOf(pFileQA.get('expr0'));
+                                                   //mapNametoWrapper.get(RaterName).ESTARfileQaNeed = Math.ceil(mapNametoWrapper.get(RaterName).ESTARfield/10);
+                                               }
+                                           }
+            for(AggregateResult pFieldQA: [select HERS_Rater_Name_SERH__r.name, count(id)
+                                           from inspections__c
+                                           Where QA_Year_SERH__c = :yearStr
+                                           and recordTypeID = '0120B0000005kLU'
+                                           Group By HERS_Rater_Name_SERH__r.name]){
+                                               String RaterName = string.valueof(pFieldQA.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.TotalFieldQaComplete = Double.valueOf(pFieldQA.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).TotalFieldQaComplete = Double.valueOf(pFieldQA.get('expr0'));
+                                                   //mapNametoWrapper.get(RaterName).ESTARfileQaNeed = Math.ceil(mapNametoWrapper.get(RaterName).ESTARfield/10);
+                                               }
+                                           }
+
+            for(String key: mapNametoWrapper.keySet()){
+                mapNametoWrapper.get(key).doMath();
+                contactList.add(mapNametoWrapper.get(key));
+            }
+        }
+        return contactList;
+    }
+
+    public class cContact {
+        Public String Name {get; set;}
+        Public Double ESTARfiles {get; set;}
+        Public Double ESTARfileQaNeed {get; set;}
+        Public Double ESTARfileQaComplete {get; set;}
+        Public Double ESTARfileQaLeft {get; set;}
+
+        Public Double ESTARfield {get; set;}
+        Public Double ESTARfieldQaNeed {get;set;}
+        Public Double ESTARfieldQaComplete {get;set;}
+        Public Double ESTARfieldQaLeft {get; set;}
+
+        Public Double TotalFiles {get; set;}
+        Public Double TotalFileQaNeed {get; set;}
+        Public Double TotalFileQaComplete {get; set;}
+        Public Double TotalFileQaLeft {get; set;}
+
+        Public Double TotalFields {get; set;}
+        Public Double TotalFieldQaNeed {get; set;}
+        Public Double TotalFieldQaComplete {get; set;}
+        Public Double TotalFieldQaLeft {get; set;}
+
+        Public void doMath(){
+            if (ESTARfiles == null){
+                ESTARfiles = 0;
+            }
+            if (ESTARfield == null){
+                ESTARfield = 0;
+            }
+            if (Totalfiles == null){
+                Totalfiles = 0;
+            }
+            if (TotalFields == null){
+                TotalFields = 0;
+            }
+
+            if (ESTARfileQaNeed == null){
+                ESTARfileQaNeed = 0;
+            }
+            if(ESTARfileQaComplete == null){
+                ESTARfileQaComplete = 0;
+            }
+            if(ESTARfieldQANeed==null){
+                ESTARfieldQANeed=0;
+            }
+            if(ESTARfieldQaComplete==null){
+                ESTARfieldQaComplete=0;
+            }
+            if(TotalFileQaNeed==null){
+                TotalFileQaNeed=0;
+            }
+            if(TotalFileQaComplete==null){
+                TotalFileQaComplete=0;
+            }
+            if(TotalFieldQaNeed==null){
+                TotalFieldQaNeed=0;
+            }
+            if(TotalFieldQaComplete==null){
+                TotalFieldQaComplete=0;
+            }
+
+            ESTARfileQaNeed = Math.ceil(ESTARfiles/10);
+            ESTARfieldQaNeed = Math.ceil(ESTARfield/100);
+            TotalFileQaNeed = Math.ceil(TotalFiles/10);
+            TotalFieldQaNeed = Math.ceil(TotalFields/100);
+
+            ESTARfileQaLeft = ESTARfileQaNeed - ESTARfileQaComplete;
+       		ESTARfieldQaLeft = ESTARfieldQANeed - ESTARfieldQaComplete;
+
+            TotalFileQaLeft = TotalFileQaNeed - TotalFileQaComplete;
+            TotalFieldQaLeft = TotalFieldQaNeed - TotalFieldQaComplete;
+        }
+
+
+        //This is the contructor method. When we create a new cContact object we pass a Contact that is set to the con property. We also set the selected value to false
+        public cContact() {
+
+        }
+    }
+
+    public void getResult() {
+        system.debug(''+this.year);
+    }
+
+
+
+}

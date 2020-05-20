@@ -1,0 +1,69 @@
+<apex:page controller="serhQaLeftReportWrapperClass" showHeader="false" lightningStylesheets="true" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+<style>
+    .scrollable {
+                height: 200px;
+                <!-- width: 768px; Don't need this if it's okay for height to be dynamic -->
+            overflow-y:auto;
+        }       
+</style>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>SERH File QA Summary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Import the Design System style sheet -->
+    <apex:slds />
+    
+</head>
+<body>  
+     <div class="slds-scope">
+         <div class="slds-page-header" role="banner">
+            <div class="slds-grid">
+                <div class="slds-col slds-has-flexi-truncate">
+                     <p class="slds-text-title_caps slds-line-height_reset">File QA</p>
+                     <h1 class="slds-page-header__title slds-truncate" title="My Accounts">File QA Summary</h1>
+                </div>
+                <div class="slds-col slds-no-flex slds-grid slds-align-top">
+                     <apex:form > 
+                         <apex:commandButton value="Refresh" status="spinnerStatus" reRender="bigGroup" oncomplete="location.reload()"/>                      
+                     </apex:form>    
+                </div>
+            </div>
+            <div class="slds-grid">
+                <div class="slds-col slds-align-bottom slds-medium-size_6-of-12" >Rater</div>
+                <div class="slds-col slds-align-bottom slds-medium-size_3-of-12" >File QA Left</div>
+                <div class="slds-col slds-align-bottom slds-medium-size_3-of-12" >Estar File QA Left</div>
+            </div>
+            
+         </div>
+          <div class="slds-p-top_small"></div>
+         <div class="myapp">
+            <apex:form > 
+            <apex:actionStatus id="spinnerStatus">
+                    <apex:facet name="start">
+                        <div class="slds-spinner_container" >
+                            <div id="mySpinner" role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+                                <span class="slds-assistive-text">Loading</span>
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                        </div>
+                    </apex:facet>
+                </apex:actionStatus> 
+                <apex:pageBlock id="bigGroup">  
+                    <div class="scrollable">    
+                        <apex:pageBlockTable value="{!contacts}" var="c" id="theTable">
+                            <apex:column value="{!c.Name}" width="50%" />
+                            <apex:column headerclass="ct" value="{!c.TotalFileQaLeft}" width="25%" />
+                            <apex:column headerclass="ct" value="{!c.ESTARfileQaLeft}" width="25%" />  
+                        </apex:pageBlockTable>
+                    </div>
+                </apex:pageBlock>
+                
+            </apex:form>
+        </div>    
+</div>
+</body>
+</html>
+</apex:page>

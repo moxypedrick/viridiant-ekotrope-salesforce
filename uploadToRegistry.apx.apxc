@@ -1,0 +1,31 @@
+public class uploadToRegistry {
+    
+    
+    public static List<String> uploadToBuildingRegistry(List<project__c> projectList){
+        String username = 'southface-api';
+    	String password = 'wYFUCL5z';
+    	Blob headerValue = Blob.valueOf(username + ':' + password);
+    	String authorization = ('Basic ' + EncodingUtil.base64Encode(headerValue));
+    	Date uploadDate = Date.today();
+        List<String> ekotropeIdList = new List<String>();
+        
+        for(project__c currentProj : projectList){
+            if(Test.isRunningTest()) {
+                Test.setMock(HttpCalloutMock.class, new YourHttpPutCalloutMockImpl());
+                System.Debug('Setting test mock YourHttpPutCalloutMockImpl');
+            }
+            HttpResponse uploadResponse = ekotropeAPIconnector_DP.putToBuildingRegistry(authorization, currentProj.Ekotrope_ID__c);
+            String plan = String.valueOf(uploadResponse.getBody());
+            uploadResponseJSON2Apex upload = uploadResponseJSON2Apex.parse(plan);
+            if(upload.registryID != null){
+                currentProj.RESNET_Registry_ID__c = upload.registryId;
+                currentProj.EC_Registration_Date__c = uploadDate;
+                currentProj.Project_Status__c = 'Completed'; 
+                ekotropeIdList.add(currentProj.Name+' : Uploaded successfully');
+            }
+            else ekotropeIdList.add(currentProj.name+' : Failed to upload. Automatic QA status: '+upload.automaticQaStatus + 'RESNET Error: ' + upload.rawRegistryResponse);
+        }
+        update(projectList);
+        return ekotropeIdList;
+    }
+}

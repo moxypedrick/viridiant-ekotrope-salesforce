@@ -1,0 +1,1305 @@
+global class SERH implements Database.Batchable<String>, Database.AllowsCallouts, Database.Stateful {
+    
+    global String newProjectsList = '';
+    private String ekotropeStatus = '';
+    private String updateStatus = '';
+    private List<string> ekotropeStages = new List<string>();
+    private boolean regularRun = True;
+    private string baselineBuilding = '';
+    private string referenceBuilding = '';
+    private string designBuilding = '';
+    private string dataPrefix = '';
+    global String authorization = ''; //('Basic ' + EncodingUtil.base64Encode(headerValue));
+
+
+    global List<Project__c> ekotropeIdList = new List<Project__c>();
+    global List<SERH_Data__c> serhDataList = new List<SERH_Data__c>();
+    global List<String> projectIdList = new List<String>();
+	//global HttpResponse projectListResponse = new HttpResponse();
+	global List<Object> newResults = new List<Object>();
+    
+    global Map<String, String> accountsMap = new Map<String, String>();
+    global Map<String, String> projectMap = new Map<String, String>();
+    global Map<String, String> serhDataMap = new Map<String, String>();
+    global Map<String, String> raterMap = new Map<String, String>();
+    private final Map<String, List<String>> newList = new Map<String, List<String>>();
+    private final List<string> codesToCheck = new List<string>();
+    private final List<string> buildingsToCheck = new List<string>();
+
+	public static Project__C constructProject(projectJSON2Apex.aProjectJSON2Apex aProject, analysisJson2Apex.pAnalysisJson2Apex bsIsAnalysisResults, String HERSrater, Id RFI, String ratingOrganization, String status, String updateStatus) {
+		//Record constructor methods
+        Date EC_Registration_Date = Date.newInstance(1999, 1, 1);
+        Date Rating_Date = Date.newInstance(1999, 1, 1);
+        projectJSON2Apex.aProjectJSON2Apex qProject = aProject;
+        analysisJson2Apex.pAnalysisJson2Apex qAnalyis = bsIsAnalysisResults;
+
+        integer i = qAnalyis.Compliance.size();
+        integer count = 0;
+        String energyStar = 'Fail';
+
+        while (count < i){
+            List<string> codesToCheck = new List<string>();
+            If (qAnalyis.Compliance[count].code == 'EnergyStarV3'){
+                if(qAnalyis.Compliance[count].complianceStatus == 'Warn'){
+                    energyStar = 'Pass';
+                } else{
+                    energyStar = qAnalyis.Compliance[count].complianceStatus;
+                      }
+
+            }
+            count++;
+        }
+
+
+        if (qProject.hersRatingDetails.ratingDate != null){
+                EC_Registration_Date =  Date.newInstance(
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(0,4)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(5,7)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(8,10)));
+            }else{
+                EC_Registration_Date = null;
+            }
+            if (qProject.hersRatingDetails.fieldRatingDate != null){
+               Rating_Date = Date.newInstance(
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(0,4)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(5,7)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(8,10)));
+            }else{
+                Rating_Date = null;
+            }
+
+        Project__c projectRecord = new Project__c(
+            SERH_Number_of_Units__c = 1,
+            Name = qProject.location.streetAddress.abbreviate(80),
+            Development_Text__c = qProject.community,
+            Builder_SERH__c = qProject.builder,
+            HERS_Rater__c = HERSrater,
+            RemRate_Version__c = 'Ekotrope-' + qProject.algorithmVersion,
+            Rating_Date__c = Rating_Date,
+            Ekotrope_URL__c = 'https://app.ekotrope.com/#project:'+qProject.id,
+            RESNET_Registry_ID__c = qProject.hersRatingDetails.registryId,
+            Ekotrope_ID__c = qProject.id,
+            EC_Registration_Date__c =  EC_Registration_Date,
+            Street_Address__c = qProject.location.streetAddress,
+            City__c = qProject.location.city,
+            State__c = qProject.location.state,
+            Zip_Code__c = qProject.location.zip,
+            RecordTypeId = '0120B000000t8JVQAY',
+            OwnerId = '005U0000000cZ8eIAE', 
+            Ekotrope_selfOrPlanLastSavedAt__c = qProject.selfOrPlanLastSavedAt,
+            Rating_Organization__c = ratingOrganization,
+            Rating_Field_Inspector__c = RFI,
+            Energy_Star_v3__c = energyStar
+        );
+
+        if (status == 'SUBMITTED_TO_REGISTRY'){
+            projectRecord.Project_Status__c = 'Completed';
+        } else if(status == 'SUBMITTED_FOR_QA' && updateStatus == 'update status'){
+                projectRecord.Project_Status__c = 'In Progress';
+        } else if(status == 'Error'){
+            projectRecord.Project_Status__c = 'On Hold';
+        } else if (status == 'On Hold' && updateStatus == 'update status'){
+            projectRecord.Project_Status__c = 'On Hold';
+        } else if(status == 'In Progress' && updateStatus == 'update status'){
+            projectRecord.Project_Status__c = 'In Progress';
+        }
+        //projectRecord.SERH_Number_of_Units__c = 1;
+
+        return projectRecord;
+	}
+
+    public static SERH_Data__C constructDataRecord(projectJSON2Apex.aProjectJSON2Apex bProject, planJson2Apex.aPlanJson2Apex rplan, analysisJson2Apex.pAnalysisJson2Apex bsIsAnalysisResults,  analysisJson2Apex.pAnalysisJson2Apex RefAnalysisResults,  analysisJson2Apex.pAnalysisJson2Apex DesAnalysisResults, String arecordType) {
+
+        projectJSON2Apex.aProjectJSON2Apex qProject = bProject;
+        planJson2Apex.aPlanJson2Apex qplan = rplan;
+        analysisJson2Apex.pAnalysisJson2Apex asIsAnalysisResults = bsIsAnalysisResults;
+        analysisJson2Apex.pAnalysisJson2Apex referenceAnalysisResults = RefAnalysisResults;
+        analysisJson2Apex.pAnalysisJson2Apex designAnalysisResults = DesAnalysisResults;
+        String recordType = arecordType;
+        Date EC_Registration_Date = Date.newInstance(1999, 1, 1);
+        Date Rating_Date = Date.newInstance(1999, 1, 1);
+        string masterPlan = null;
+
+
+        if(arecordType == 'HERS'){
+            masterPlan = qProject.MasterPlanId;
+        }
+        else{
+            masterPlan = null;
+        }
+
+        Double naturalGas = 0;
+        Double electric = 0;
+        Double oil = 0;
+        Double propane = 0;
+        Double wood = 0;
+
+         if (qProject.hersRatingDetails.ratingDate != null){
+                EC_Registration_Date =  Date.newInstance(
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(0,4)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(5,7)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(8,10)));
+            }else{
+                EC_Registration_Date = null;
+            }
+            if (qProject.hersRatingDetails.fieldRatingDate != null){
+               Rating_Date = Date.newInstance(
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(0,4)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(5,7)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(8,10)));
+            }else{
+                Rating_Date = null;
+            }
+
+
+
+        //iterate thru all compliance results
+            //when it equals each one grab it and write it to the appropriate
+            //fields. but how do i iterate throur a
+
+        integer i = AsIsAnalysisResults.Compliance.size();
+        integer count = 0;
+        String iecc2009 = 'False';
+        String iecc2012 = 'False';
+        String energyStar = 'False';
+        String doeZERH = 'False';
+        String dukeHero= 'False';
+
+        while (count < i){
+            List<string> codesToCheck = new List<string>();
+            If (AsIsAnalysisResults.Compliance[count].code == 'IECC2009Performance'){
+                iecc2009 = AsIsAnalysisResults.Compliance[count].complianceStatus;
+            }
+            If (AsIsAnalysisResults.Compliance[count].code == 'EnergyStarV3'){
+                energyStar = AsIsAnalysisResults.Compliance[count].complianceStatus;
+            }
+            If (AsIsAnalysisResults.Compliance[count].code == 'IECC2012Performance'){
+                iecc2012 = AsIsAnalysisResults.Compliance[count].complianceStatus;
+            }
+            If (AsIsAnalysisResults.Compliance[count].code == 'DOEZeroEnergyReady'){
+                doeZERH = AsIsAnalysisResults.Compliance[count].complianceStatus;
+            }
+            If (AsIsAnalysisResults.Compliance[count].code == 'DukeNCHEROPerformance'){
+                dukeHero = AsIsAnalysisResults.Compliance[count].complianceStatus;
+            }
+            count++;
+        }
+
+         Integer fee = 60;
+
+        if(qProject.hersRatingDetails.rater.RatingCompany.id == 'JVYyEeYW'){
+            fee = 55;
+        } else if(qProject.hersRatingDetails.ratingType == 'Sampled'){
+			fee = 30;
+        } else if(qProject.name.containsIgnoreCase('repeat') && energyStar == 'PASS'){//qProject.name.containsIgnoreCase('estar')){
+            fee = 50;
+        } else if(qProject.name.containsIgnoreCase('repeat') && energyStar != 'PASS'){//!qProject.name.containsIgnoreCase('estar')){
+            fee = 45;
+        } else if(!qProject.name.containsIgnoreCase('repeat') && energyStar == 'PASS'){//qProject.name.containsIgnoreCase('estar')){
+            fee = 65;
+        } else{
+            fee = 60;
+        }
+
+        //asIsAnalysisResults
+
+        system.debug(qProject.name+'-'+fee);
+
+
+        SERH_Data__c serhRecord = new SERH_Data__c(
+
+            name = recordType + '-' + qProject.name.abbreviate(79-recordType.length()),
+            Registry_ID__c = qProject.hersRatingDetails.registryId,
+            Rating_Date__c = Rating_Date,
+            Registered_Date__c = EC_Registration_Date,
+            Upload_Date__c = Date.today(),
+            of_Units__c = 1.0,
+            Project_Type__c = qplan.Details.residenceType,
+            Foundation_Type__c = qplan.thermalEnvelope.foundationType,
+            Housing_Type__c = qplan.Details.residenceType,
+
+            ENERGY_STAR_v3__c = energyStar,
+            ZERH__c = doeZERH,
+            IECC2009_UA__c = iecc2009,
+            IECC2012_UA__c = iecc2012,
+
+            //Rating_Type__c = not sure where this is in api,
+            Software_Version__c = 'Ekotrope-'+qProject.algorithmVersion,
+            //Building_Name__c =
+            Rating_Type__c = qProject.hersRatingDetails.ratingType,
+            File_Name__c = qProject.name.abbreviate(80),
+            Plan_Name__c = qProject.model,
+            Ekotrope_Plan_ID__c = masterPlan,
+            HERS_INDEX__c =  AsIsAnalysisResults.hersScore,
+            CFA_sqft__c = qplan.thermalEnvelope.summary.conditionedArea,
+            Volume_cuft__c = qplan.thermalEnvelope.summary.conditionedVolume,
+            BD_Infiltration_Cool__c = qplan.thermalEnvelope.infiltration.cfm50,
+            BD_Infiltration_Heat__c = qplan.thermalEnvelope.infiltration.cfm50,
+            Invoice_for__c = 'File QA',
+            Fee_per_Unit__c = fee,
+            Export_Type__c = recordType,
+            BD_Infiltration_Units__c = 'cfm50',
+            OwnerId = '005U0000000cZ8eIAE',
+            CO2_lbs__c = AsIsAnalysisResults.emissions.summary.totalCo2,
+            NOX_lbs__c = AsIsAnalysisResults.emissions.summary.totalNox,
+            SO2_lbs__c = AsIsAnalysisResults.emissions.summary.totalSo2,
+            Cooling_MMBtu__c = AsIsAnalysisResults.energy.summary.coolingConsumption,
+            Heating_MMBtu__c = AsIsAnalysisResults.energy.summary.heatingConsumption,
+            DHW_MMBtu__c = AsIsAnalysisResults.energy.summary.waterHeatingConsumption,
+            PV_MMBtu__c = AsIsAnalysisResults.energy.summary.solarGeneration,
+            LA_MMBtu__c = AsIsAnalysisResults.energy.summary.lightingAndAppliancesConsumption,
+            Total_Rated_Consumption_MMBtu__c = AsIsAnalysisResults.energy.summary.coolingConsumption +
+            AsIsAnalysisResults.energy.summary.heatingConsumption +
+            AsIsAnalysisResults.energy.summary.waterHeatingConsumption +
+            AsIsAnalysisResults.energy.summary.lightingAndAppliancesConsumption,
+
+            Electricity_Consumption_kWh__c = 293.07 * (AsIsAnalysisResults.energy.breakdown.byFuel[1].coolingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[1].heatingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[1].lightingAndAppliancesConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[1].waterHeatingConsumption),
+
+            Fuel_Oil_Consumption_gallons__c = 7.22 * (AsIsAnalysisResults.energy.breakdown.byFuel[2].coolingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[2].heatingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[2].lightingAndAppliancesConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[2].waterHeatingConsumption),
+
+            Natural_Gas_Consumption_therms__c = 10 * (AsIsAnalysisResults.energy.breakdown.byFuel[0].coolingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[0].heatingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[0].lightingAndAppliancesConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[0].waterHeatingConsumption),
+
+            Propane_Consumption_gallons__c = 10.95 *(AsIsAnalysisResults.energy.breakdown.byFuel[3].coolingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[3].heatingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[3].lightingAndAppliancesConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[3].waterHeatingConsumption),
+
+            Wood_Consumption_tonnes__c = 0.067 * (AsIsAnalysisResults.energy.breakdown.byFuel[4].coolingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[4].heatingConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[4].lightingAndAppliancesConsumption+
+            AsIsAnalysisResults.energy.breakdown.byFuel[4].waterHeatingConsumption),
+
+
+            Ref_CO2_Lbs__c = referenceAnalysisResults.emissions.summary.totalCo2,
+            Ref_NOX_lbs__C = referenceAnalysisResults.emissions.summary.totalNox,
+            Ref_SO2_lbs__C = referenceAnalysisResults.emissions.summary.totalSo2,
+
+            Ref_Cooling_MMBtu__c = referenceAnalysisResults.energy.summary.coolingConsumption,
+            Ref_Heating_MMBtu__c = referenceAnalysisResults.energy.summary.heatingConsumption,
+            Ref_DHW_MMBtu__c = referenceAnalysisResults.energy.summary.waterHeatingConsumption,
+            Ref_PV_MMBtu__c = referenceAnalysisResults.energy.summary.solarGeneration,
+            Ref_LA_MMBtu__c = referenceAnalysisResults.energy.summary.lightingAndAppliancesConsumption,
+            Ref_Total_Rated_Consumption_MMBtu__c = referenceAnalysisResults.energy.summary.coolingConsumption +
+            referenceAnalysisResults.energy.summary.heatingConsumption +
+            referenceAnalysisResults.energy.summary.waterHeatingConsumption +
+            referenceAnalysisResults.energy.summary.lightingAndAppliancesConsumption,
+
+            Ref_Electricity_Consumption_kWh__c = 293.07 * (referenceAnalysisResults.energy.breakdown.byFuel[1].coolingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[1].heatingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[1].lightingAndAppliancesConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[1].waterHeatingConsumption),
+
+            Ref_Fuel_Oil_Consumption_gallons__c = 7.22 * (referenceAnalysisResults.energy.breakdown.byFuel[2].coolingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[2].heatingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[2].lightingAndAppliancesConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[2].waterHeatingConsumption),
+
+            Ref_Natural_Gas_Consumption_therm__c = 10 * (referenceAnalysisResults.energy.breakdown.byFuel[0].coolingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[0].heatingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[0].lightingAndAppliancesConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[0].waterHeatingConsumption),
+
+            Ref_Propane_Consumption_gallons__c = 10.95 *(referenceAnalysisResults.energy.breakdown.byFuel[3].coolingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[3].heatingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[3].lightingAndAppliancesConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[3].waterHeatingConsumption),
+
+            Ref_Wood_Consumption_tonnes__c = 0.067 * (referenceAnalysisResults.energy.breakdown.byFuel[4].coolingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[4].heatingConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[4].lightingAndAppliancesConsumption+
+            referenceAnalysisResults.energy.breakdown.byFuel[4].waterHeatingConsumption),
+
+            Design_CO2_Lbs__c = designAnalysisResults.emissions.summary.totalCo2,
+            Design_NOX_lbs__C = designAnalysisResults.emissions.summary.totalNox,
+            Design_SO2_lbs__C = designAnalysisResults.emissions.summary.totalSo2,
+
+            Design_Cooling_MMBtu__c = designAnalysisResults.energy.summary.coolingConsumption,
+            Design_Heating_MMBtu__c = designAnalysisResults.energy.summary.heatingConsumption,
+            Design_DHW_MMBtu__c = designAnalysisResults.energy.summary.waterHeatingConsumption,
+            Design_PV_MMBtu__c = designAnalysisResults.energy.summary.solarGeneration,
+            Design_LA_MMBtu__c = designAnalysisResults.energy.summary.lightingAndAppliancesConsumption,
+            Design_Total_Rated_Consumption_MMBtu__c = designAnalysisResults.energy.summary.coolingConsumption +
+            designAnalysisResults.energy.summary.heatingConsumption +
+            designAnalysisResults.energy.summary.waterHeatingConsumption +
+            designAnalysisResults.energy.summary.lightingAndAppliancesConsumption,
+
+            Design_Electricity_Consumption_kWh__c = 293.07 * (designAnalysisResults.energy.breakdown.byFuel[1].coolingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[1].heatingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[1].lightingAndAppliancesConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[1].waterHeatingConsumption),
+
+            Design_Fuel_Oil_Consumption_gallons__c = 7.22 * (designAnalysisResults.energy.breakdown.byFuel[2].coolingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[2].heatingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[2].lightingAndAppliancesConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[2].waterHeatingConsumption),
+
+            Design_Natural_Gas_Consumption_therm__c = 10 * (designAnalysisResults.energy.breakdown.byFuel[0].coolingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[0].heatingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[0].lightingAndAppliancesConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[0].waterHeatingConsumption),
+
+            Design_Propane_Consumption_gallons__c = 10.95 *(designAnalysisResults.energy.breakdown.byFuel[3].coolingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[3].heatingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[3].lightingAndAppliancesConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[3].waterHeatingConsumption),
+
+            Design_Wood_Consumption_tonnes__c = 0.067 * (designAnalysisResults.energy.breakdown.byFuel[4].coolingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[4].heatingConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[4].lightingAndAppliancesConsumption+
+            designAnalysisResults.energy.breakdown.byFuel[4].waterHeatingConsumption)
+        );
+        return serhRecord;
+    }
+
+    public static Inspections__c constructInspectionRecord(ID projectID) {
+        Project__c projectRecord;
+        projectRecord = [SELECT HERS_Rater__c, Project_Status__c, Name, EC_Registration_Date__c, Energy_STAR_v3__c FROM Project__c WHERE ID = :projectID];
+        projectRecord.Project_Status__c = 'Pending Review';
+        update projectRecord;
+        string year;
+        if(projectRecord.EC_Registration_Date__c != null){
+            year = String.valueOf(projectRecord.EC_Registration_Date__c.year()); //
+        } else {
+            year = String.valueOf(datetime.now().year());
+        }
+
+        boolean estar = false;
+
+        if(projectRecord.Energy_Star_v3__c == 'Pass' || projectRecord.Energy_Star_v3__c == 'Certified'){
+            estar = true;
+        }
+        Inspections__c inspectionRecord = new Inspections__c(
+            Project__c = projectID,
+            Project_Temporary_Name__c = projectRecord.Name,
+            QA_Year_SERH__c = year,
+            HERS_Rater_Name_SERH__c = projectRecord.HERS_Rater__c,
+            Status__c = 'New',
+            Energy_STAR__c = estar,
+            RecordTypeId = '0120B0000005kLZQAY'
+        );
+
+        return inspectionRecord;
+	}
+
+    public static Inspections__c constructAutoQaRecord(projectJSON2Apex.aProjectJSON2Apex project) {
+        Project__c projectRecord;
+        List<recordtype> recordTypeList = [select name, id from recordtype where name= 'Auto QA' and sobjecttype = 'Inspections__c'];
+        id recordId = recordTypeList.get(0).id;
+
+        list<Inspections__c> inspectionRecordList;
+        //projectRecord = [SELECT HERS_Rater__c, Name, EC_Registration_Date__c, Energy_STAR_v3__c FROM Project__c WHERE ID = :projectID];
+
+        inspectionRecordList = [SELECT Project_Temporary_Name__c, Status__c FROM Inspections__c WHERE RecordTypeId = :recordId and Project__r.Ekotrope_ID__c = :project.id];
+        
+        // return a list that is an empty
+        Inspections__c inspectionRecord;
+        if(inspectionRecordList.size() == 0){
+
+            //create an inspection
+            inspectionRecord = null;
+            string year;
+            year = String.valueOf(datetime.now().year());
+
+            inspectionRecord = new Inspections__c(
+                //Project__c = projectID,
+                Project_Temporary_Name__c = project.location.streetAddress.abbreviate(80), 
+                QA_Year_SERH__c = year,
+                //HERS_Rater_Name_SERH__c = projectRecord.HERS_Rater__c,
+                Status__c = 'Ready for Review',
+                //Energy_STAR__c = estar,
+                RecordTypeId = recordId,
+                Date_of_Inspection__c = date.today()
+            );
+
+
+        }else{
+            inspectionRecord = inspectionRecordList[0];
+        }
+
+      return inspectionRecord;
+
+	}
+    
+    public static Log__c constructErrorLog(String nameString, String apexClass, HttpResponse newHTTP, String projectId, String descriptionLong){
+        Log__c errorLog = new Log__c(
+            Name = nameString,
+            Status_Code__c = newHTTP.getStatusCode(),
+            Class_Name__c = apexClass,
+            Record_Id__c = projectId,
+            Description__c = newHTTP.getStatus(),
+            Description_long__c = descriptionLong
+        );
+        return errorLog;
+    }
+    
+    public static string setProjectStatus(projectJSON2Apex.aProjectJSON2Apex bProject, planJson2Apex.aPlanJson2Apex rplan, String updateStatus, String initialStatus){
+        //Set project status, assigns the appropriate status dependent on
+    	//the rating type, building type, and previous status
+        projectJSON2Apex.aProjectJSON2Apex qProject = bProject;
+        planJson2Apex.aPlanJson2Apex qplan = rPlan;
+        string projectStatus;
+
+        string projectType = rPlan.Details.residenceType;
+        string ratingType = bProject.hersRatingDetails.ratingType;
+        if(projectType == 'ApartmentEndUnit' || projectType == 'ApartmentInsideUnit'
+           || projectType == 'MultiFamilyWholeBuilding' || projectType == 'DuplexSingleUnit'
+           || projectType == 'DuplexWholeBuilding'|| ratingType == 'Sampled'
+           || ratingType == 'Threshold'|| ratingType == 'Projected'){
+               projectStatus = 'On Hold';
+           }
+        else{
+            projectStatus = 'In Progress';
+        }
+
+        return projectStatus;
+    }
+
+    public static void determineQaNeed(List<string> projectIds){
+        //This takes a list of project IDs and determines if any should
+    	//be selected for File QA. This is based on need.
+        // This determines the files that need File QA.
+
+        String year;
+        year = String.valueOf(datetime.now().year());
+
+        Map<id, boolean> idMap = new Map<id, boolean>();
+             for(Qualifications_del__c autoUploadStatus : [Select Approved_for_Auto_Upload__c, id, Qualifications_for__c
+                                            From Qualifications_del__c
+                                            ])
+            {idMap.put(autoUploadStatus.Qualifications_for__c, autoUploadStatus.Approved_for_Auto_Upload__c);}
+
+
+        //iterate thru list
+        //we could sort by HERS Rater and then economize on the QA need SOQL queries. 
+        //However, we generally are working with few files at a time. But it would 
+        //speed up all of the Ensign/Matt Wall file process - a majority of the work we do.
+        for(string projectId : projectIds){
+            //get project with soql
+             Project__c projectRecord;
+             projectRecord = [SELECT HERS_Rater__c, Rating_Field_Inspector__c,
+                              Project_Status__c, ID, Energy_STAR_v3__c,
+                              Ekotrope_ID__c, Name
+                              FROM Project__c WHERE Ekotrope_ID__c = :projectId];
+             id hersRater = projectRecord.HERS_Rater__c;
+
+
+            system.debug(projectRecord.Name);
+
+
+
+            //determine if the project is estar: if true then preform separate coin flip.
+            if(projectRecord.Energy_Star_v3__c == 'Pass'){
+                Integer eStarFiles =  [select count()
+                    from project__c
+                    Where HERS_Rater__c = :hersRater and ((EC_Registration_Date__c = THIS_YEAR
+                        and Energy_Star_v3__c = 'Pass'
+                        and recordtypeid = '0120B000000t8JVQAY')
+
+                    or (recordtypeid = '0120B000000t8JVQAY'
+                        and Energy_Star_v3__c = 'Pass'
+                        and Project_Status__c = 'pending review'
+                        and EC_Registration_Date__c = Null)
+
+                    or (recordtypeid = '0120B000000t8JVQAY'
+                        and Energy_Star_v3__c = 'Pass'
+                        and Project_Status__c = 'in progress'
+                        and EC_Registration_Date__c = Null))
+                    ];
+
+                Integer eStarFileQA = [select count()
+                    from inspections__c
+                    Where QA_Year_SERH__c = :year
+                    and Energy_Star__c = TRUE
+                    and recordTypeID = '0120B0000005kLZQAY'
+                    and HERS_Rater_Name_SERH__c = :hersRater];
+                Double TotaleStarQaNeed = Math.ceil(double.valueOf(eStarFiles)/10);
+
+                if(eStarFileQA == 0){
+                    Inspections__c newInspection = SERH.constructInspectionRecord(projectRecord.Id);
+                    insert newInspection;
+                } else if(math.random() > 0.5) {
+                    //flip coin
+                    system.debug('First Coin Flip was greater than 0.5');
+                	Double eStarFileQaLeft = TotaleStarQaNeed - eStarFileQa;
+                    //if eStarFileQaLeft > 0 == TRUE then we can create a QA
+                    if(eStarFileQaLeft >= 0){
+                        Inspections__c newInspection = SERH.constructInspectionRecord(projectRecord.Id);
+                        insert newInspection;
+                        projectRecord.Project_Status__c = 'Pending Review';
+                        update projectRecord;
+                    }
+                }
+            }
+
+            Integer regFiles =  [select count()
+                                       from project__c
+                                       Where HERS_Rater__c = :hersRater
+                                       and
+                                             ((EC_Registration_Date__c = THIS_YEAR
+                                               and recordtypeid = '0120B000000t8JVQAY')
+
+                                           or (recordtypeid = '0120B000000t8JVQAY'
+                                                and Project_Status__c = 'pending review'
+                                                and EC_Registration_Date__c = Null)
+
+                                            or (recordtypeid = '0120B000000t8JVQAY'
+                                                and Project_Status__c = 'in progress'
+                                                and EC_Registration_Date__c = Null))
+                                      ];
+
+            Integer regFileQA = [select count()
+                                              from inspections__c
+                                              Where QA_Year_SERH__c = :year// year = String.valueOf(datetime.now().year());
+                                              and recordTypeID = '0120B0000005kLZQAY'
+                                              and HERS_Rater_Name_SERH__c = :hersRater];
+
+            if(regFileQA == 0){
+                Inspections__c newInspection = SERH.constructInspectionRecord(projectRecord.Id);
+                insert newInspection;
+                projectRecord.Project_Status__c = 'Pending Review';
+            } else if(math.random() < 0.5)
+            {
+                //This file was not needed for estar or regular file qa: upload to building registry
+                //Make sure they have the auto-upload field activated
+                system.debug(idMap.get(projectRecord.HERS_Rater__c));
+                system.debug(idMap.get(projectRecord.Rating_Field_Inspector__c));
+                boolean rater;
+                boolean rfi;
+                if(idMap.get(projectRecord.HERS_Rater__c) == null){
+                    rater = false;
+                } else{
+                    rater = idMap.get(projectRecord.HERS_Rater__c);
+                }
+
+                if(idMap.get(projectRecord.Rating_Field_Inspector__c) == null){
+                    rfi = false;
+                } else{
+                    rfi = idMap.get(projectRecord.Rating_Field_Inspector__c);
+                }
+                if(rater && rfi){
+                    projectRecord.Project_Status__c = 'In Progress';
+                    update projectRecord;
+                }
+                else{
+                    //Not approved for autoProcess
+                    //place the project on hold
+                    //Will know that the project is 'On Hold' due to not approved for autoProcess
+                    //when we write the wrapper class that queries the rater/rfi credential
+                    projectRecord.Project_Status__c = 'On Hold';
+                    update projectRecord;
+
+                }
+            }
+            else{
+                system.debug('Second coin flip was greater than 0.5');
+                //This file was randomly selected for regular file qa: determine if they need QA
+                Double TotalFileQaNeed = Math.ceil(double.valueOf(regFiles)/10);
+                Double regFileQaLeft = TotalFileQaNeed - regFileQa;
+                if(regFileQaLeft >= 0){
+                    Inspections__c newInspection = SERH.constructInspectionRecord(projectRecord.Id);
+                    insert newInspection;
+                    projectRecord.Project_Status__c = 'Pending Review';
+                }
+                else{
+                    projectRecord.Project_Status__c = 'In Progress';
+                }
+                update projectRecord;
+            }
+        }
+    }
+
+    public static HttpResponse getProjectList(String authorization, String statusType){
+        //Get list of projects from ekotrope that have stage (submitted_for_QA, Registered_with_RESNET, etc)
+        //Then passes those projects to be parsed
+        //string startDate = '2019-7-10';
+        //string endDate = '2019-7-22';
+        if(test.isRunningTest()){
+                    Test.setMock(HttpCalloutMock.class, new YourHttpUpdaterProj());
+                }
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        HttpResponse response;
+        request.setEndpoint('https://app.ekotrope.com/api/v1/projects?status='+statusType);//SUBMITTED_TO_REGISTRY');
+        request.setMethod('GET');
+        request.setHeader('authorization', authorization);
+        request.setTimeout(60000);
+        try {
+			system.debug('trying to get response from get project list');
+            response = http.send(request);
+            } 
+        catch(Exception e) {
+            system.debug('getProjectList except');
+            system.debug(e.getMessage());
+            response = new HttpResponse();
+            response.setStatus(e.getMessage());
+            response.setStatusCode(418);
+            response.setBody('{}');
+            system.debug(response);
+        }
+        
+        return response;
+   	}
+ 
+//public static HttpResponse getProjectListWithDate(String authorization, String statusType, String createdAfter, String createdBefore){
+// request.setEndpoint('https://app.ekotrope.com/api/v1/projects?status='+statusType+'&created_after='+createdAfter+'&created_before='+createdBefore);
+      
+    public static HttpResponse getProject(String authorization, String ekotropeId){
+        String project = ekotropeId;
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        HttpResponse projectResponse;
+		request.setEndpoint('https://app.ekotrope.com/api/v1/projects/'+project);
+		request.setMethod('GET');
+		request.setHeader('authorization', authorization);
+		
+        try{
+            projectResponse = http.send(request);
+           
+        } catch(Exception e){
+            system.debug('getProject exception');
+            system.debug(e.getMessage());
+            projectResponse = new HttpResponse();
+            projectResponse.setStatus(e.getMessage());
+            projectResponse.setStatusCode(418);
+            projectResponse.setBody('{}');
+            
+            
+        }
+        return projectResponse;
+
+    }
+
+    public static HttpResponse getHousePlan(String authorization, String ekotropeMasterPlanId){
+        String planID = ekotropeMasterPlanId;
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        HttpResponse planResponse;
+		request.setEndpoint('https://app.ekotrope.com/api/v1/houseplans/' + planID);
+		request.setMethod('GET');
+        request.setHeader('authorization', authorization);
+        try{
+            planResponse = http.send(request);
+        } catch(Exception e){
+            system.debug('getHousePlan except');
+            system.debug(e.getMessage());
+            planResponse = new HttpResponse();
+            planResponse.setStatus(e.getMessage());
+            planResponse.setStatusCode(418);
+            planResponse.setBody('{}');
+        }
+		
+        return planResponse;
+
+    }
+
+    public static HttpResponse getHousePlanAnalysis(String authorization, String ekotropeMasterPlanId, String buildingType, List<String> codesToCheck){
+        String planID = ekotropeMasterPlanId;
+        String building = buildingType;
+        String codesString = '';
+        for(String i : codesToCheck){
+            codesString = codesString +'&codesToCheck=' + i;
+        }
+
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        HttpResponse planAnalysisResponse;
+        request.setEndpoint('https://app.ekotrope.com/api/v1/planAnalysis/'+planID+'?buildingType='+ buildingType + codesString);
+		request.setMethod('GET');
+		request.setHeader('authorization', 'Basic c291dGhmYWNlLWFwaTp3WUZVQ0w1eg==');
+		
+        try{
+            planAnalysisResponse = http.send(request);
+            
+        } catch(Exception e){
+            system.debug('getHousePlanAnalysis except');
+            system.debug(e.getMessage());
+            planAnalysisResponse = new HttpResponse();
+            planAnalysisResponse.setStatus(e.getMessage());
+            planAnalysisResponse.setStatusCode(418);
+            planAnalysisResponse.setBody('{}');
+           
+        }
+        return planAnalysisResponse;
+
+    }
+
+    public static HttpResponse putToBuildingRegistry(String authorization, String ekotropeId){
+        //make this a method which returns a Map<String, String>
+        //This method should take an authorization and a list of project ids or ekotrope ids
+        //It then uploads each individually and returns a status or does it handle the status internally
+        //I think it handles the status internally and then it can just be a terminal function
+        //Otherwise it takes one id at a time uploads and returns the response. That's pretty clean
+        //
+        //
+        String planID = ekotropeId;
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        HttpResponse putResponse;
+        request.setEndpoint('https://api.ekotrope.com/api/v1/resnet/registeredProjects/'+planID);
+        request.setMethod('PUT');
+        request.setHeader('authorization', authorization);
+        request.setTimeout(20000);
+        try{
+            putResponse = http.send(request);
+            //return putResponse;
+        } catch(Exception e){
+            system.debug('putToBuildingRegistry except');
+            system.debug(e.getMessage());
+            putResponse = new HttpResponse();
+            putResponse.setStatus(e.getMessage());
+            putResponse.setStatusCode(418);
+            putResponse.setBody('{}');
+            String json = '{\"registryId\":\"null\",\"rawRegistryResponse\":\"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?>\\r\\n<RegistryResponse>\\r\\n  <ResponseCode>null</ResponseCode>\\r\\n  <ResponseMessage><![CDATA[Rating imported unsuccessfully!]]></ResponseMessage>\\r\\n  <RegistryID>null</RegistryID>\\r\\n</RegistryResponse>\",\"automaticQaStatus\":\"null\"}';
+            system.debug(putResponse);
+			//return putResponse;
+        }
+        return putResponse;
+    }
+
+    global void setVariables(list<string> stage){
+        //This sets which Ekotrope Status this code queries from the Project List API
+    	//The options are: "SUBMITTED_FOR_QA", "SUBMITTED_TO_REGISTRY", "UNREGISTERED",
+    	//"REGISTERED_WITH_PROVIDER"
+        ekotropeStages = stage;
+    }
+
+    global void setRegRun(boolean regRun){
+        //A regular run (TRUE) is a run in which we create projects and serh data with status
+    	//HERS. If we want to make serh data that is not of status "HERS" the setNonRegRun
+    	//should be set to FALSE.
+        regularRun = regRun;
+    }
+
+    global void setAuthorization(){
+        //A regular run (TRUE) is a run in which we create projects and serh data with status
+    	//HERS. If we want to make serh data that is not of status "HERS" the setNonRegRun
+    	//should be set to FALSE.
+        //Authorization = auth;
+        
+        Account credentials = [Select id, Ekotrope_Password__c, Ekotrope_Username__c from Account WHERE Name = 'Southface'];
+        system.debug(credentials.Ekotrope_Password__c);
+        
+        String username = credentials.Ekotrope_Username__c;
+        String password = credentials.Ekotrope_Password__c;
+        Blob headerValue = Blob.valueOf(username + ':' + password);
+        authorization = ('Basic ' + EncodingUtil.base64Encode(headerValue));  
+        
+        system.debug(authorization);
+    }
+
+    global void setCodesToCheck(List<string> codes){
+        //Sets codes which will be evaluated for compliance
+    	//in the Ekotrope calculation engine.
+        integer i = codes.size();
+        integer beg = 0;
+        while(beg < i){
+            codesToCheck.add(codes[beg]);
+            beg++;
+        }
+    }
+
+    global void setBuildingRun(string baseline, string reference, string design){
+        //The SERH Data object has fields to hold energy use data for three types of
+        //home analysis. These results represent the three basic home energy evaluations
+    	//for a HERS Rating - (HERS Index = ???? / Reference ; D)
+        baselineBuilding = baseline;
+        referenceBuilding = reference;
+        designBuilding = design;
+        buildingsToCheck.add(baseline);
+        buildingsToCheck.add(reference);
+        buildingsToCheck.add(design);
+        }
+
+    global void setSERHDataName(string prefix){
+        //This sets the SERH Data records Upload Type field. This should be
+    	//descriptive of the setBuildingRun scenario. Current Salesforce field optoins are
+    	//HERS, 2012 IECC, 2009 IECC
+        dataPrefix = prefix;
+        //System.Debug('Set prefix to '+prefix);
+    }
+
+    global Iterable<String> start(Database.BatchableContext bc){
+        List<Log__c> errorLogs = new List<Log__c>();
+        //Iterable for batchable work in salesforce
+        system.debug('SERH.start Start: '+ Limits.getCpuTime());
+        
+        if(regularRun){
+            for(Project__c existingProject : [Select Ekotrope_ID__c, Ekotrope_selfOrPlanLastSavedAt__c
+                                              FROM Project__c
+                                             WHERE Ekotrope_ID__c != null and RecordTypeId='0120B000000t8JVQAY'])
+            {projectMap.put(existingProject.Ekotrope_ID__c, existingProject.Ekotrope_selfOrPlanLastSavedAt__c);}
+            //Get list of projects from ekotrope that have stage (submitted_for_QA, Registered_with_RESNET, etc)
+            //Then passes those projects to be parsed
+            for(string ekoStage : ekotropeStages){
+                system.debug('Getting all ekotrope projects with stage: ' +ekoStage);
+                if(test.isRunningTest()){Test.setMock(HttpCalloutMock.class, new YourHttpUpdaterProj());}
+                system.debug('SERH.getprojectList Start: '+Limits.getCpuTime());
+               
+                HttpResponse projectListResponse = SERH.getProjectList(authorization, ekoStage);
+				system.debug('SERH.getprojectList Finish: '+Limits.getCpuTime());
+                
+                
+                //Error with the getprojectList method so except out of this start method
+                // and pass an empty iterable
+                system.debug('getProjectList had status: '+ projectListResponse.getStatusCode());
+                if(projectListResponse.getStatusCode() == 200){
+                    String newProjectList = String.valueOf(projectListResponse.getBody());    
+                    if(projectListResponse.getBody() != ''){
+                        system.debug('getProjectList returned full body');
+                        newResults = (List<Object>)JSON.deserializeUntyped(newProjectList);                    
+                        for(Object project : newResults){
+                            Map<String,Object> data = (Map<String,Object>)project;
+                            List <String> subList = new List<String>();
+                            //Checks to see if the projects from ekotrope exist in salesforce
+                            //If it doesn't(=null) add the id to projectIdList
+                            //If it does, check to see if it ekotrope model has been changed recently.
+                            //If so add the id to the projectIdList
+                            if (projectMap.get(String.valueOf(data.get('id'))) == null) {
+                                projectIdList.add(String.valueOf(data.get('id')));
+                                subList.add('update status');
+                                subList.add(ekoStage);//ekoStage
+                                newList.put(String.valueOf(data.get('id')),subList);
+                            } else  {
+                                if(data.get('selfOrPlanLastSavedAt') != projectMap.get(String.valueOf(data.get('id')))){
+                                    projectIdList.add(String.valueOf(data.get('id')));
+                                    subList.add('no status update');
+                                    subList.add(ekoStage);//ekoStage
+                                    newList.put(String.valueOf(data.get('id')),subList);
+                                }   
+                            }
+                        }
+                    }else{
+                        system.debug('getProjectList returned blank body');
+                        if(!Test.isRunningTest()){
+                            Log__c errorLog = constructErrorLog('getProjectList','getProjectList', projectListResponse, ekoStage, projectListResponse.getBody());
+                            errorLogs.add(errorLog);
+                        }   
+                    }  
+                }else{
+                    if (!Test.isRunningTest()){
+                        Log__c errorLog = constructErrorLog('getProjectList','getProjectList', projectListResponse, ekoStage, projectListResponse.getBody());
+                        errorLogs.add(errorLog);
+                    return projectIdList; 
+                    }   
+                }                           
+			}
+            
+        }else{
+            // Else we are just adding SERH Data to existing Projects
+            // Therefore we do not need a callout to ekotrope for project list
+            // we just need to get list of existing project and serh data ids
+            for(Project__c existingProject : [Select Ekotrope_ID__c, Ekotrope_selfOrPlanLastSavedAt__c
+                                              FROM Project__c
+                                              WHERE Ekotrope_ID__c != null and RecordTypeId = '0120B000000t8JVQAY'])
+            {projectMap.put(existingProject.Ekotrope_ID__c, existingProject.Ekotrope_selfOrPlanLastSavedAt__c);}
+
+            for(SERH_Data__c existingData : [Select id, Project__c
+                                            From SERH_Data__c
+                                            WHERE Export_Type__c = :dataPrefix])
+            {serhDataMap.put(existingData.Project__c, existingData.id);}
+
+            for(String i:projectMap.keySet()){
+                if(serhDataMap.get(i) == null){
+                    projectIdList.add(i);
+                }
+            }
+        }
+        insert errorLogs;
+        system.debug('SERH.start Finish'+Limits.getCpuTime());
+        integer timeRemaining = Limits.getLimitCpuTime()-Limits.getCpuTime();
+		system.debug('CPU Time Remaining: ' + timeRemaining);
+        system.debug(newList);
+        system.debug(newList.size());
+        return projectIdList;
+    }
+
+    global void execute(Database.BatchableContext bc, List<String> projectsToUpdate){   
+        system.debug('SERH.execute Start: '+Limits.getCpuTime());
+        List<Log__c> errorLogs = new List<Log__c>();
+        
+        if(regularRun){
+            List<string> autoQaList = new List<string>();
+            List<Inspections__c> autoQaRecordList = new List<Inspections__c>();
+            String raterId = null;
+            String RFI_Rater = null;
+            String project_status = null;
+
+            for(Qualifications_del__c existingContact : [
+                Select Qualifications_for__c,
+                HERS_RTIN_Rater_Identification_Number__c
+                FROM Qualifications_del__c
+                WHERE HERS_RTIN_Rater_Identification_Number__c != null ])
+            {raterMap.put(existingContact.HERS_RTIN_Rater_Identification_Number__c, existingContact.Qualifications_for__c);}
+            
+            
+
+            for(Account existingAccounts : [Select Ekotrope_ID__c, Id FROM Account WHERE Ekotrope_ID__c != ''])
+            {accountsMap.put(existingAccounts.Ekotrope_ID__c, existingAccounts.Id);}
+
+            //iterate through all projects to create project records and serh data records;
+            //check to see if any should not be auto-processed
+        	for(String projectId:projectsToUpdate){
+                system.debug('SERH.execute - Iterating through all projects that need updating in this batch');
+        		system.debug(Limits.getCpuTime());
+                if(newList.get(projectId)[1] == null){ekotropeStatus = 'SUBMITTED_FOR_QA';}
+                else{ekotropeStatus = newList.get(projectId)[1];}
+                
+                if(newList.get(projectId)[0] == null){updateStatus = 'update status';}
+                else{updateStatus = newList.get(projectId)[0];}
+               
+            	//if this is a test method we need to set the appropriate mock class
+                if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpProjectCalloutMockImplJG() ); }
+                
+                system.debug('geting project information from ekotrope: '+Limits.getCpuTime());
+                HttpResponse projectResponse = SERH.getProject(authorization, projectId);
+                system.debug('Finished getting project information from ekotrope: '+Limits.getCpuTime());
+                if(projectResponse.getStatusCode() == 418){
+                    system.debug('Project has status code 418: '+projectId);
+                    system.debug(projectResponse.getBody());
+                    Log__c errorLog = constructErrorLog('getProject','getProject', projectResponse, projectId, projectResponse.getBody());
+                     /*   
+                    Log__c errorLog = new Log__c(
+                        Name = 'getProject',
+                        Status_Code__c = projectResponse.getStatusCode(),
+                        Class_Name__c = 'getProject',
+                        Record_Id__c = projectId,
+                        Description__c = projectResponse.getStatus(),
+                        Description_long__c = 'getProject API call to Ekotrope was unsuccessful'
+                    );*/
+                    errorLogs.add(errorLog);
+                }
+                else if(projectResponse.getStatusCode() == 200){
+                    String newProject = String.valueOf(projectResponse.getBody());
+                    projectJSON2Apex.aProjectJSON2Apex qProject = projectJSON2Apex.parse(newProject);
+
+                    //if(qProject.hersRatingDetails.rater.resnetProviderId == '1998-057'){/// CHANGE this to if > last sync date
+                    //if this is a test method we need to set the appropriate mock class
+                    if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpHouseCalloutMocklJG() ); }
+                    HttpResponse planResponse = SERH.getHousePlan(authorization, qProject.masterPlanId);               
+                    //if this is a test method we need to set the appropriate mock class
+                    if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpAnalysisCalloutMockJG() ); }
+                    HttpResponse analysisResponse = SERH.getHousePlanAnalysis(authorization, qProject.masterPlanId, 'EkotropeAsModeled', codesToCheck);
+                    //if this is a test method we need to set the appropriate mock class
+                    if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpAnalysisCalloutMockJG() ); }
+                    HttpResponse ReferenceAnalysisResponse = SERH.getHousePlanAnalysis(authorization, qProject.masterPlanId, 'HERSReference', codesToCheck);
+                    //if this is a test method we need to set the appropriate mock class
+                    if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpAnalysisCalloutMockJG() ); }
+                    HttpResponse DesignanalysisResponse = SERH.getHousePlanAnalysis(authorization, qProject.masterPlanId, 'HERSRated', codesToCheck);
+
+                    //Complete the response parsing and record creation only if all HTTP callouts were successful
+                    if(planResponse.getStatusCode() == 200 && analysisResponse.getStatusCode() == 200 && ReferenceAnalysisResponse.getStatusCode() == 200 && DesignanalysisResponse.getStatusCode() == 200){
+                        String plan = String.valueOf(planResponse.getBody());
+                        planJson2Apex.aPlanJson2Apex qplan = planJson2Apex.parse(plan);
+                        String AsIsAnalysis = String.valueOf(analysisResponse.getBody());
+                        analysisJson2Apex.pAnalysisJson2Apex AsIsAnalysisResults = analysisJson2Apex.parse(AsIsAnalysis);                
+                        String ReferenceAnalysis = String.valueOf(ReferenceAnalysisResponse.getBody());
+                        analysisJson2Apex.pAnalysisJson2Apex ReferencenalysisResults = analysisJson2Apex.parse(ReferenceAnalysis);
+                        String DesignAnalysis = String.valueOf(DesignanalysisResponse.getBody());
+                        analysisJson2Apex.pAnalysisJson2Apex DesignAnalysisResults = analysisJson2Apex.parse(DesignAnalysis);
+                        system.debug(Limits.getCpuTime());
+
+
+                        Project__c existingProjectPlaceHolder = new Project__c(
+                        Ekotrope_ID__c = qProject.id
+                        );
+
+                       
+                        project_status = SERH.setProjectStatus(qProject, qplan, newList.get(projectId)[0], newList.get(projectId)[1]);
+                        String HERS_Rater =  raterMap.get(String.valueOf(qProject.hersRatingDetails.rater.resnetRaterId));
+						if(HERS_Rater == null){
+                            HERS_Rater = raterMap.get(String.valueOf('1309482'));
+                        }
+                        if (qProject.hersRatingDetails.associatedUsers.size() > 0){
+                            //Check to see if the RFI, Rater entries are correct
+                            //If entry is incorrect (rater,rfi selected incorrect credential type) an Auto QA Record is generated to log that error. 
+                            //The inspection record is assigned to the place holder project for upsert. 
+                            //If no error, this returns the correct rater/rfi ids. 
+                            if (qProject.hersRatingDetails.associatedUsers[0].userType == 'Rater'){
+                                if(qProject.hersRatingDetails.associatedUsers[0].resnetRaterId == ''){
+                                    project_status = 'Error';
+                                    Inspections__c inspectionRecord = SERH.constructAutoQaRecord(qProject);
+                                    inspectionRecord.Project__r = existingProjectPlaceHolder;
+                                    inspectionRecord.mismatched_RTIN__c = TRUE;
+                                    autoQaRecordList.add(inspectionRecord);
+                                } else{
+                                    raterId = qProject.hersRatingDetails.associatedUsers[0].resnetRaterId;
+                                    }
+                            } else if (qProject.hersRatingDetails.associatedUsers[0].userType == 'FieldInspector'){
+                                if(qProject.hersRatingDetails.associatedUsers[0].fieldInspectorId == ''){
+                                    project_status = 'Error';
+                                    Inspections__c inspectionRecord = SERH.constructAutoQaRecord(qProject);
+                                    inspectionRecord.Project__r = existingProjectPlaceHolder;
+                                    inspectionRecord.mismatched_RTIN__c = TRUE;
+                                    autoQaRecordList.add(inspectionRecord);
+                                } else{raterId = qProject.hersRatingDetails.associatedUsers[0].fieldInspectorId;}
+                            }
+                            RFI_Rater = raterMap.get(raterId);
+                            } else{RFI_Rater = raterMap.get(String.valueOf(qProject.hersRatingDetails.rater.resnetRaterId));}
+						if(RFI_Rater == null){RFI_Rater = raterMap.get(String.valueOf('1309482'));}
+                        
+                        String ratingOrganization = accountsMap.get(String.valueof(qProject.hersRatingDetails.rater.ratingCompany.id));
+                        Project__c projectRecord = SERH.constructProject(qProject, AsIsAnalysisResults, HERS_Rater, RFI_Rater, ratingOrganization, project_status, newList.get(projectId)[0]);
+                        SERH_Data__c SerhRecord = SERH.constructDataRecord(qProject, qplan, AsIsAnalysisResults, ReferencenalysisResults, DesignAnalysisResults, dataPrefix);
+                        SerhRecord.Project__r = existingProjectPlaceHolder;
+                        serhDataList.add(serhRecord);                 
+                        ekotropeIdList.add(projectRecord);
+                        //If the projectRecord has status of 'In Progress' we need to add it to the list of 
+                        //files we want to push through the auto qa select process.
+
+                        if(projectRecord.Project_Status__c == 'In Progress'){autoQalist.add(projectRecord.Ekotrope_ID__c);} 
+                    }
+                    else{
+                        system.debug('Project response was not 418 and not 200');
+                        if(planResponse.getStatusCode() != 200){
+                            Log__c errorLog = constructErrorLog('getHousePlan','getHousePlan', planResponse, projectId, planResponse.getBody());
+                     
+                            /*Log__c errorLog = new Log__c(
+                                Name = 'getHousePlan',
+                                Status_Code__c = planResponse.getStatusCode(),
+                                Class_Name__c = 'getHousePlan',
+                                Record_Id__c = projectId,
+                                Description__c = planResponse.getStatus(),
+                                Description_long__c = 'getHousePlan API call to Ekotrope was unsuccessful'
+                            );*/
+                        	errorLogs.add(errorLog);
+                        } 
+                        if(analysisResponse.getStatusCode() != 200){
+                            Log__c errorLog = constructErrorLog('getHousePlanAnalysis - EkotropeAsModeled','getHousePlanAnalysis', analysisResponse, projectId, analysisResponse.getBody());
+                          /*   Log__c errorLog = new Log__c(
+                                Name = 'getHousePlanAnalysis - EkotropeAsModeled',
+                                Status_Code__c = planResponse.getStatusCode(),
+                                Class_Name__c = 'getHousePlanAnalysis',
+                                Record_Id__c = projectId,
+                                Description__c = planResponse.getStatus(),
+                                Description_long__c = 'getHousePlanAnalysis - EkotropeAsModeled API call to Ekotrope was unsuccessful'
+                            );*/
+                        	errorLogs.add(errorLog);
+                            
+                        } 
+                        if(ReferenceAnalysisResponse.getStatusCode() != 200){
+                            Log__c errorLog = constructErrorLog('getHousePlanAnalysis - HERSReference','getHousePlanAnalysis', ReferenceAnalysisResponse, projectId, ReferenceAnalysisResponse.getBody());
+        
+                            /*Log__c errorLog = new Log__c(
+                                Name = 'getHousePlanAnalysis - HERSReference',
+                                Status_Code__c = planResponse.getStatusCode(),
+                                Class_Name__c = 'getHousePlanAnalysis',
+                                Record_Id__c = projectId,
+                                Description__c = planResponse.getStatus(),
+                                Description_long__c = 'getHousePlanAnalysis - HERSReference API call to Ekotrope was unsuccessful'
+                            );*/
+                        	errorLogs.add(errorLog);
+                        } 
+                        if(DesignanalysisResponse.getStatusCode() != 200){
+                            Log__c errorLog = constructErrorLog('getHousePlanAnalysis - HERSRated','getHousePlanAnalysis', DesignanalysisResponse, projectId, DesignanalysisResponse.getBody());
+        /*
+                            Log__c errorLog = new Log__c(
+                                Name = 'getHousePlanAnalysis - HERSRated',
+                                Status_Code__c = planResponse.getStatusCode(),
+                                Class_Name__c = 'getHousePlanAnalysis',
+                                Record_Id__c = projectId,
+                                Description__c = planResponse.getStatus(),
+                                Description_long__c = 'getHousePlanAnalysis - HERSRated API call to Ekotrope was unsuccessful'
+                            );*/
+                        	errorLogs.add(errorLog);
+                        }
+                    } 
+                }
+                else{
+                    Log__c errorLog = constructErrorLog('getProject','getProject', projectResponse, projectId, projectResponse.getBody());
+
+                   /* Log__c errorLog = new Log__c(
+                        Name = 'getProject',
+                        Status_Code__c = projectResponse.getStatusCode(),
+                        Class_Name__c = 'getProject',
+                        Record_Id__c = projectId,
+                        Description__c = projectResponse.getStatus(),
+                        Description_long__c = projectResponse.getBody()
+                    );*/
+                    errorLogs.add(errorLog);
+                    system.debug(projectId);
+                    system.debug(projectResponse.getBody());
+                }     
+            } 
+            //Upsert projects, serhData, autoQaInspections to salesforce
+            upsert ekotropeIdList Ekotrope_ID__c;
+            upsert serhDataList SERH_Data__c.Fields.Ekotrope_Plan_ID__c;
+            upsert autoQaRecordList;
+            insert errorLogs;
+            SERH.determineQaNeed(autoQaList);
+
+            serhDataList.clear();
+            ekotropeIdList.clear();
+            autoQaRecordList.clear();
+        }
+        else{
+            for(String projectId:projectsToUpdate){
+
+                //if this is a test method we need to set the appropriate mock class
+                if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpProjectCalloutMockImplJG() ); }
+                HttpResponse projectResponse = SERH.getProject(authorization, projectId);
+                if(projectResponse.getStatusCode() == 418){
+                    system.debug('projectResponse status code was 418');
+                }else if(projectResponse.getStatusCode() == 200){
+                    String newProject = String.valueOf(projectResponse.getBody());
+                    projectJSON2Apex.aProjectJSON2Apex qProject = projectJSON2Apex.parse(newProject);
+
+                    //if this is a test method we need to set the appropriate mock class
+                    if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpHouseCalloutMocklJG() ); }
+                    HttpResponse planResponse = SERH.getHousePlan(authorization, qProject.masterPlanId);
+                    String plan = String.valueOf(planResponse.getBody());
+                    planJson2Apex.aPlanJson2Apex qplan = planJson2Apex.parse(plan);
+
+                    //if this is a test method we need to set the appropriate mock class
+                    if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpAnalysisCalloutMockJG() ); }
+                    HttpResponse analysisResponse = SERH.getHousePlanAnalysis(authorization, qProject.masterPlanId, baselineBuilding, codesToCheck);
+                    String AsIsAnalysis = String.valueOf(analysisResponse.getBody());
+                    analysisJson2Apex.pAnalysisJson2Apex AsIsAnalysisResults = analysisJson2Apex.parse(AsIsAnalysis);
+
+                    //if this is a test method we need to set the appropriate mock class
+                    if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpAnalysisCalloutMockJG() ); }
+                    HttpResponse ReferenceAnalysisResponse = SERH.getHousePlanAnalysis(authorization, qProject.masterPlanId, referenceBuilding, codesToCheck);
+                    String ReferenceAnalysis = String.valueOf(ReferenceAnalysisResponse.getBody());
+                    analysisJson2Apex.pAnalysisJson2Apex ReferencenalysisResults = analysisJson2Apex.parse(ReferenceAnalysis);
+
+                    //if this is a test method we need to set the appropriate mock class
+                    if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new YourHttpAnalysisCalloutMockJG() ); }
+                    HttpResponse DesignanalysisResponse = SERH.getHousePlanAnalysis(authorization, qProject.masterPlanId, designBuilding, codesToCheck);
+                    String DesignAnalysis = String.valueOf(DesignanalysisResponse.getBody());
+                    analysisJson2Apex.pAnalysisJson2Apex DesignAnalysisResults = analysisJson2Apex.parse(DesignAnalysis);
+
+                    String HERS_Rater =  raterMap.get(String.valueOf(qProject.hersRatingDetails.rater.resnetRaterId));
+                    String ratingOrganization = accountsMap.get(String.valueof(qProject.hersRatingDetails.rater.ratingCompany.id));
+
+                    SERH_Data__c SerhRecord = SERH.constructDataRecord(qProject, qplan, AsIsAnalysisResults, ReferencenalysisResults, DesignAnalysisResults, dataPrefix);
+
+                    
+                    serhDataList.add(serhRecord);
+                } else{
+                    system.debug('projectResponse status code was not 418 and not 200');
+                }
+            }
+
+            
+            Map<String, String> idMap = new Map<String, String>();
+            for(Serh_Data__c existingData : [Select Ekotrope_plan_id__c, id, Project__c
+                                            From SERH_Data__c
+                                            WHERE Ekotrope_plan_id__c != null])
+            {idMap.put(existingData.Ekotrope_Plan_Id__c, existingData.Project__c);}
+
+
+            for (Project__c aProject : ekotropeIdList){
+                projectMap.put(aProject.Ekotrope_ID__c, aProject.id);
+            }
+            for(SERH_Data__c sData : serhDataList){
+                sData.Project__c = idMap.get(sData.Ekotrope_Plan_ID__c);
+            }
+
+            insert serhDataList;
+            serhDataList.clear();
+            ekotropeIdList.clear();
+        }
+        system.debug('SERH.execute Finish');
+        system.debug(Limits.getCpuTime());
+        system.debug('CPU Time Limits');
+        system.debug(Limits.getLimitCpuTime());
+    }
+
+    global void finish(Database.BatchableContext bc){
+        List<String> filesNotSynced = new List<String>();
+        List<Log__c> errorLogs = new List<Log__c>();
+        system.debug('finish method starting');
+        
+        for(Project__c existingProject : [Select Ekotrope_ID__c, Ekotrope_selfOrPlanLastSavedAt__c
+                                              FROM Project__c
+                                             WHERE Ekotrope_ID__c != null and RecordTypeId='0120B000000t8JVQAY'])
+            {projectMap.put(existingProject.Ekotrope_ID__c, existingProject.Ekotrope_selfOrPlanLastSavedAt__c);}
+            //Get list of projects from ekotrope that have stage (submitted_for_QA, Registered_with_RESNET, etc)
+            //Then passes those projects to be parsed
+            for(string ekoStage : ekotropeStages){
+                system.debug('Getting all ekotrope projects with stage: ' +ekoStage);
+                if(test.isRunningTest()){Test.setMock(HttpCalloutMock.class, new YourHttpUpdaterProj());}
+                system.debug('SERH.getprojectList Start: '+ Limits.getCpuTime());
+               
+                HttpResponse projectListResponse = SERH.getProjectList(authorization, ekoStage);
+				system.debug('SERH.getprojectList Finish: '+ Limits.getCpuTime());
+                
+                
+                //Error with the getprojectList method so except out of this start method
+                // and pass an empty iterable
+                system.debug('getProjectList had status: '+ projectListResponse.getStatusCode());
+                if(projectListResponse.getStatusCode() == 200){
+                    String newProjectList = String.valueOf(projectListResponse.getBody());    
+                    if(projectListResponse.getBody() != ''){
+                        system.debug('getProjectList returned full body');
+                        newResults = (List<Object>)JSON.deserializeUntyped(newProjectList);                    
+                        for(Object project : newResults){
+                            Map<String,Object> data = (Map<String,Object>)project;
+                            List <String> subList = new List<String>();
+                            //Checks to see if the projects from ekotrope exist in salesforce
+                            //If it doesn't(=null) add the id to projectIdList
+                            //If it does, check to see if it ekotrope model has been changed recently.
+                            //If so add the id to the projectIdList
+                            if (projectMap.get(String.valueOf(data.get('id'))) == null) {
+                                projectIdList.add(String.valueOf(data.get('id')));
+                                filesNotSynced.add(String.valueOf(data.get('id')));
+                            } else  {
+                                if(data.get('selfOrPlanLastSavedAt') != projectMap.get(String.valueOf(data.get('id')))){
+                                    projectIdList.add(String.valueOf(data.get('id')));
+                                    filesNotSynced.add(String.valueOf(data.get('id')));
+                                }   
+                            }
+                        }
+                    }else{
+                        system.debug('getProjectList returned blank body');
+                        Log__c errorLog = constructErrorLog('getProjectList','getProjectList', projectListResponse, ekoStage, 'getProjectList returned blank body');
+                        errorLogs.add(errorLog);
+                           
+                    }  
+                }else{
+                    Log__c errorLog = constructErrorLog('getProjectList','getProjectList', projectListResponse, ekoStage, projectListResponse.getBody());
+                    errorLogs.add(errorLog);   
+                }                           
+			}
+        
+      	    
+        Integer numberFilesNotSynced = filesNotSynced.size();     
+        System.debug(numberFilesNotSynced);
+        if(numberFilesNotSynced == 0){
+            //create sObject that states the database is synced
+            HttpResponse response = new HttpResponse();
+            response.setStatus('successful sync');
+            response.setStatusCode(200);
+            response.setBody('Ekotrope and Salesforce synced');
+            Log__c errorLog = constructErrorLog('successful sync','SERH', response, '', 'Database Successfully Synced');
+            errorLogs.add(errorLog);
+        }else{
+            system.debug(numberFilesNotSynced);
+            HttpResponse response = new HttpResponse();
+            response.setStatus('Unsuccessful sync');
+            response.setStatusCode(409);
+            response.setBody('{}');
+            Log__c errorLog = constructErrorLog('Unsuccessful sync','SERH', response, '', string.valueof(filesNotSynced));
+            errorLogs.add(errorLog);
+        }
+        
+        insert errorLogs;
+
+        if (Test.isRunningTest()){
+            projectMap.clear();
+        } else{
+            SERH_uploadToBuildingRegistry uploadProjects = new SERH_uploadToBuildingRegistry();
+        	uploadProjects.setAuthorization(authorization);
+        	Id uploadProjectBatchId = Database.executeBatch(uploadProjects, 2);
+        }
+        projectMap.clear();
+    }
+}

@@ -1,0 +1,191 @@
+<!--
+<apex:page controller="serhOnHoldProjects" lightningStylesheets="true">
+    <apex:includeLightning />
+  
+    <apex:slds >
+            <style>
+                .ct{
+                text-align:center;
+                }                    
+            </style>
+            
+            <style>
+                .spinnerBg{
+                    width: 100%;
+                    height: 100%;
+                    position: absolute;
+                    background-color: #000;
+                    opacity: 0.2;
+                    z-index: 999999;
+                }
+                
+                .spinner{
+                    width: 100%;
+                    height: 100%;
+                    position: absolute;
+                    background-image: url("/img/loading32.gif");
+                    background-size: 16px;
+                    background-repeat: no-repeat;
+                    background-attachment: fixed;
+                    background-position: center;
+                    z-index: 9999999;
+                    opacity: 1;
+                }
+            </style>
+        
+        <script>
+            $Lightning.use("c:lcvf", function() {
+              $Lightning.createComponent("lightning:spinner",
+              { "alternativeText":"Loading", size="small", "aura:id":"lightning"},
+              function(cmp) {
+                // do some stuff
+              });
+            });
+        </script>
+    
+        <apex:form >
+                <apex:actionStatus id="spinnerStatus">
+                    <apex:facet name="start">
+                        <div class="spinnerBg" />
+                        <div class="spinner" />
+                    </apex:facet>
+                </apex:actionStatus>    
+                <apex:pageBlock id="bigGroup">
+                          <apex:pageMessages />
+                <apex:pageBlockButtons location="top"  style="text-align: center align:center" >
+                    <apex:commandButton action="{!process}" value="Auto QA Select" reRender="bigGroup" status="spinnerStatus" oncomplete="location.reload()"/>               
+                </apex:pageBlockButtons>
+                <div id="lightning" />
+                
+                <div id="lightning" />        
+                <apex:pageBlockTable value="{!projects}" var="c" id="theTable">
+                      <apex:column width="1%" headerClass="slds-cell-fixed">
+                            <apex:inputCheckbox value="{!c.checked}" />
+                      </apex:column>
+                      <apex:column value="{!c.creaxDate}" headerValue="Created Date" width="20%"   />
+                      <apex:column headerValue="Name" width="20%" >
+                            <a href="https://southface.my.salesforce.com/{!c.proj.Id}" target="_blank" >{!c.proj.Name}</a>
+                      </apex:column>
+              
+                      <apex:column value="{!c.proj.hers_rater__r.Name}" headerValue="Hers Rater" width="10%"  />
+                      <apex:column value="{!c.proj.rating_field_inspector__r.Name}" headerValue="Field Inspector" width="10%" />
+                     
+                      <apex:column headerClass="ct" value="{!c.RatingType}" headerValue="Rating Type" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.ESv3Status}" headerValue="EnergyStar" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.buildingType}" headerValue="Building Type" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.registryError}" headerValue="Registry Error" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.ekotropeError}" headerValue="Ekotrope Error" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.userTypeError}" headerValue="User Type Error" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.autoApproval}" headerValue="Auto-Approval" width="5%" style="text-align: center" />
+ 
+                    <apex:column headerClass="ct" headerValue="Ekotrope Link" width="18%" >
+                            <a href="https://app.ekotrope.com/#project:{!c.proj.Ekotrope_ID__c}" target="_blank" >{!c.proj.Ekotrope_ID__c}</a>
+                      </apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlock>
+        
+    </apex:form>
+    </apex:slds>
+</apex:page>
+-->
+
+<apex:page showHeader="false" lightningStylesheets="true" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0" controller="serhOnHoldProjects">
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+    <style>
+        .height-fixed{
+            height: 200px;
+        }   
+                      
+    </style>
+<head>
+ <meta charset="utf-8" />
+ <meta http-equiv="x-ua-compatible" content="ie=edge" />
+ <title>SERH On Hold Solver</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <!-- Import the Design System style sheet -->
+ <apex:slds />
+   
+</head>
+<body>
+ <!-- REQUIRED SLDS WRAPPER -->
+ <div class="slds-scope">
+ <!-- MASTHEAD -->
+ <!-- / MASTHEAD -->
+ <!-- PAGE HEADER -->
+<div class="slds-page-header" role="banner">
+ <div class="slds-grid">
+ <div class="slds-col slds-has-flexi-truncate">
+ <!-- HEADING AREA -->
+ <p class="slds-text-title_caps slds-line-height_reset">Projects on Hold</p>
+ <h1 class="slds-page-header__title slds-truncate" title="My Accounts">SERH Projects</h1>
+ <!-- / HEADING AREA -->
+ </div>
+ <div class="slds-col slds-no-flex slds-grid slds-align-top">
+     <apex:form > 
+         <apex:commandButton action="{!process}" value="Auto QA Select" reRender="bigGroup" status="spinnerStatus" oncomplete="location.reload()"/>                      
+     </apex:form>    
+ </div>
+ </div>
+ <div class="slds-grid">
+ <div class="slds-col slds-align-bottom slds-p-top_small">
+ 
+ </div>
+ </div>
+</div>
+<!-- / PAGE HEADER -->
+ <div class="slds-p-top_small"></div>
+ <!-- PRIMARY CONTENT WRAPPER -->
+ <div class="myapp">
+    <apex:form >
+                <apex:actionStatus id="spinnerStatus">
+                    <apex:facet name="start">
+                        <div class="slds-spinner_container" >
+                            <div id="mySpinner" role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+                                <span class="slds-assistive-text">Loading</span>
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                        </div>
+                    </apex:facet>
+                </apex:actionStatus>   
+                <apex:pageBlock id="bigGroup">
+                          <apex:pageMessages />
+                
+                <div id="lightning" />
+                
+                <div id="lightning" />   
+                <div class="height-fixed">     
+                <apex:pageBlockTable value="{!projects}" var="c" id="theTable">
+                      <apex:column width="1%" >
+                            <apex:inputCheckbox value="{!c.checked}" />
+                      </apex:column>
+                      <apex:column value="{!c.creaxDate}" headerValue="Created Date" width="20%"   />
+                      <apex:column headerValue="Name" width="20%" >
+                            <a href="https://southface.my.salesforce.com/{!c.proj.Id}" target="_blank" >{!c.proj.Name}</a>
+                      </apex:column>
+              
+                      <apex:column value="{!c.proj.hers_rater__r.Name}" headerValue="Hers Rater" width="10%"  />
+                      <apex:column value="{!c.proj.rating_field_inspector__r.Name}" headerValue="Field Inspector" width="10%" />
+                     
+                      <apex:column headerClass="ct" value="{!c.RatingType}" headerValue="Rating Type" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.ESv3Status}" headerValue="EnergyStar" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.buildingType}" headerValue="Building Type" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.registryError}" headerValue="Registry Error" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.ekotropeError}" headerValue="Ekotrope Error" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.userTypeError}" headerValue="User Type Error" width="5%" style="text-align: center" />
+                      <apex:column headerClass="ct" value="{!c.autoApproval}" headerValue="Auto-Approval" width="5%" style="text-align: center" />
+ 
+                    <apex:column headerClass="ct" headerValue="Ekotrope Link" width="18%" >
+                            <a href="https://app.ekotrope.com/#project:{!c.proj.Ekotrope_ID__c}" target="_blank" >{!c.proj.Ekotrope_ID__c}</a>
+                      </apex:column>
+                </apex:pageBlockTable>
+                </div>
+            </apex:pageBlock>
+        
+    </apex:form>
+ </div>    
+
+ </div>
+</body>
+</html>
+</apex:page>

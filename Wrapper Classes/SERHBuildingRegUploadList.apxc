@@ -1,0 +1,411 @@
+//Wrapper class to make a visualforce page to upload, sync ekotrope files
+//David Pedrick
+//9.18.2019
+
+
+public with sharing class SERHBuildingRegUploadList {
+
+    List<ProjWrapper> projs {get;set;}
+    private String state = '';
+    public String lastRefresh {get; set;}
+    private String yearStr = string.valueof(System.Today().year());
+
+    // instantiate the StandardSetController from a query locator
+    public ApexPages.StandardSetController con {
+        get {
+            if(con == null) {
+                con = new ApexPages.StandardSetController(Database.getQueryLocator([Select name, id, Project_Status__c, Createddate, 
+                                                                                    Hers_Rater__c, hers_rater__r.Name,
+                                                                                    Rating_Field_Inspector__c, Rating_Field_Inspector__r.Name,
+                                                                                    hers_rater__r.number_of_needed_file_qa__c, Ekotrope_Link__c,
+                                                                                    hers_rater__r.Number_of_File_QA_Started__c,
+                                                                                    SERH_Number_of_Units__c, Number_of_Inspections__c,
+                                                                                    Ekotrope_ID__c,
+                                                                                    (select ENERGY_STAR_v3__c, Rating_Type__c, Fee_per_Unit__c 
+                                                                                     from SERH_Data__r where Export_Type__c = 'HERS')
+                                                                                    from project__c where Project_Status__c='In Progress'
+                                                                                    and recordtypeid = '0120B000000t8JVQAY'
+                                                                                    Order By Createddate desc limit 100]));
+                // sets the number of records in each page set
+                con.setPageSize(10);
+                
+            }
+            List<AsyncApexJob> jobList = [SELECT Id, Status, ApexClass.Name, completeddate
+                      FROM AsyncApexJob where apexclass.name='SERH' and Status='Completed'
+                      Order by CompletedDate desc limit 1];
+            if (joblist.size()>0) lastRefresh = joblist.get(0).completedDate.format();
+                
+            return con;
+        }
+        set;
+    }
+
+    // returns a list of wrapper objects for the sObjects in the current page set
+    public List<ProjWrapper> getProjects() {
+        projs = new List<ProjWrapper>();
+        for (Project__c proji : (List<Project__c>)con.getRecords())
+            projs.add(new ProjWrapper(proji));
+        System.Debug('found '+String.valueOf(projs.size()));
+        return projs;
+    }
+   
+    // Uploads selected projects to building registry
+    public PageReference process() {
+         System.debug('begin process method');
+         list<Project__c> projToUpload = new List<Project__c>();
+         System.debug('initialized an empty project list');
+         //List<String> msgs = new List<String>();//comment this later
+         //
+         //As long as there are projects to iterate over, do so!
+         System.debug('projs.size():'+projs.size());
+         if (projs.size() > 0){
+             for (ProjWrapper p : projs) {
+             	if (p.checked){
+                    projToUpload.add(p.proj);
+                    //msgs.add(p.proj.Name + '-Fakely Submitted');//comment this later
+                }
+                 }
+             if (projToUpload.size() > 0){
+                 List<String> msgs = uploadtoRegistry.uploadToBuildingRegistry(projToUpload);
+                 state = 'Finished.';
+
+         
+         System.debug('messages from BuildingReg: ' + msgs.size());
+         if(msgs.size() > 0){
+             for (String idIter : msgs){
+                 ApexPages.addMessage(new ApexPages.message(ApexPages.severity.INFO,idIter));
+                 System.Debug('adding message %%%%%%%%%%%%%%%%%%%%%%% ' + idIter);
+             }
+         }
+         else ApexPages.addMessage(new ApexPages.message(ApexPages.severity.INFO,'No Response '));
+                                  state = 'Finished.';
+
+         return null;
+             }
+             else {
+                 ApexPages.addMessage(new ApexPages.message(ApexPages.severity.INFO,'No records selected'));
+                 state = 'Finished.';
+
+                 return null;
+             }
+         }
+         else {
+             ApexPages.addMessage(new ApexPages.message(ApexPages.severity.INFO,'No results to update'));
+             state = 'Finished.';
+             return null;
+         }
+     }
+    
+    public void syncWithEkotrope(){
+        serhSchedulable ssched = new serhSchedulable();
+        if(!Test.isRunningTest()) ssched.execute(null);
+        ApexPages.addMessage(new ApexPages.message(ApexPages.severity.INFO,'Ekotrope sync request submitted. Please wait a minute or more as projects are updated.'));
+    }
+
+    // indicates whether there are more records after the current page set.
+    public Boolean hasNext {
+        get {
+            return con.getHasNext();
+        }
+        set;
+    }
+
+    // indicates whether there are more records before the current page set.
+    public Boolean hasPrevious {
+        get {
+            return con.getHasPrevious();
+        }
+        set;
+    }
+
+    // returns the page number of the current page set
+    public Integer pageNumber {
+        get {
+            return con.getPageNumber();
+        }
+        set;
+    }
+
+    // returns the first page of records
+     public void first() {
+         con.save();
+         con.first();
+     }
+
+     // returns the last page of records
+     public void last() {
+         con.save();
+         con.last();
+     }
+
+     // returns the previous page of records
+     public void previous() {
+         con.save();
+             
+         con.previous();
+     }
+
+     // returns the next page of records
+     public void next() {
+         con.save();
+         con.next();
+     }
+//This bit seems to break salesforce; commenting out to see if it helps
+     // returns the PageReference of the original page, if known, or the home page.
+    // public void cancel() {
+         
+   //      con.cancel();
+//}
+    public String getState(){
+        return state;
+    }
+    public void setState(String n){
+        state = n;
+    }
+    public class ProjWrapper {
+
+  	    public Boolean checked{ get; set; }
+ 	    public Project__c proj { get; set;}
+        public String creaxDate {get; set;}
+        public Decimal QAleft {get; set;}
+        public String ESv3Status {get; set;}
+        public Decimal feePerUnit {get; set;}
+        public String RatingType {get; set;}
+
+        public ProjWrapper(){
+            proj = new Project__c(); 
+            checked = false;
+            creaxDate = 'no Project Entered';
+            QAleft = 0;
+            ESv3Status = '';
+            feePerUnit = 0;
+        }
+
+        public ProjWrapper(Project__c p){
+            proj = p;
+	        checked = false;
+            //CreatedDate formatting so it's not in GMT!
+            //<3 lucky we're in a rapper class! <3
+            creaxDate = p.CreatedDate.format();
+            //Now let's add some formula columns
+            //First, we want QA remaining
+            //That means Needed minus Started
+            if (p.hers_rater__c != null){
+                if (p.hers_rater__r.number_of_needed_file_qa__c != null){
+                    if (p.hers_rater__r.Number_of_File_QA_Started__c != null){
+                    QAleft = p.hers_rater__r.number_of_needed_file_qa__c-p.hers_rater__r.Number_of_File_QA_Started__c;
+                    } else (QAleft = p.hers_rater__r.number_of_needed_file_qa__c);}
+
+            } else {
+                QAleft = null;
+            }
+            system.debug('Project Name' + p.Name + 'serh data size: ' + p.SERH_Data__r.size());
+            //Now Energy Star Status and TYpe from the HERS record
+            if (p.SERH_Data__r.size() > 0){
+                SERH_Data__c currDat = p.SERH_Data__r[0];
+                RatingType = currDat.Rating_Type__c;
+                ESv3Status = currDat.ENERGY_STAR_v3__c;
+                feePerUnit = currDat.Fee_per_Unit__c;
+                
+            } else{
+                RatingType = '';
+                ESv3Status = '';
+                feePerUnit = 0;
+            }
+	    }
+/**
+    public static testMethod void testMe() {
+
+        CategoryWrapper cw = new CategoryWrapper();
+        System.assertEquals(cw.checked,false);
+
+        CategoryWrapper cw2 = new CategoryWrapper(new Cat3__c(name='Test1'));
+        System.assertEquals(cw2.cat.name,'Test1');
+        System.assertEquals(cw2.checked,false);
+
+    }
+**/
+}
+     
+    
+    public List<cContact> contactList{get; set;}
+    
+    public map<String, cContact> mapNametoWrapper = new map<String, cContact>();
+    
+    public List<cContact> getContacts(){
+        if(contactList == null){
+            contactList = new List<cContact>();
+            
+            for(AggregateResult pRegFile: [select HERS_Rater__r.name, count(id)
+                                           from project__c
+                                           Where (EC_Registration_Date__c = THIS_YEAR
+                                           and recordtypeid = '0120B000000t8JVQAY')
+                                           
+                                           or (recordtypeid = '0120B000000t8JVQAY' 
+                                           and Project_Status__c = 'pending review'
+                                              and EC_Registration_Date__c = Null)
+                                           
+                                           or (recordtypeid = '0120B000000t8JVQAY' 
+                                           and Project_Status__c = 'in progress'
+                                           and EC_Registration_Date__c = Null)
+                                           
+                                           Group By HERS_Rater__r.name]){
+                                               String RaterName = string.valueof(pRegFile.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.TotalFiles = Double.valueOf(pRegFile.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).TotalFiles = Double.valueOf(pRegFile.get('expr0'));
+                                                  }   
+                                           }
+
+            for(AggregateResult pEstarFile: [select HERS_Rater__r.name, count(id)
+                                           from project__c
+                                           Where (EC_Registration_Date__c = THIS_YEAR
+                                           and Energy_Star_v3__c = 'pass'
+                                           and recordtypeid = '0120B000000t8JVQAY')
+                                           
+                                             or (recordtypeid = '0120B000000t8JVQAY' 
+                                           and Energy_Star_v3__c = 'pass'
+                                           and Project_Status__c = 'pending review'
+                                           and EC_Registration_Date__c = Null)
+                                             
+                                             or (recordtypeid = '0120B000000t8JVQAY' 
+                                           and Energy_Star_v3__c = 'pass'
+                                           and Project_Status__c = 'in progress'
+                                           and EC_Registration_Date__c = Null)
+                                           Group By HERS_Rater__r.name]){
+                                               String RaterName = string.valueof(pEstarFile.get('name'));
+                                               mapNametoWrapper.get(RaterName).ESTARfiles = Double.valueOf(pEstarFile.get('expr0'));
+                                             }
+            for(AggregateResult pEstarFileQA: [select HERS_Rater_Name_SERH__r.name, count(id)
+                                           from inspections__c
+                                           Where QA_Year_SERH__c = :yearStr
+                                           and Energy_Star__c = TRUE
+                                           and recordTypeID = '0120B0000005kLZQAY'
+                                           Group By HERS_Rater_Name_SERH__r.name]){
+                                               String RaterName = string.valueof(pEstarFileQA.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.ESTARfileQaComplete = Double.valueOf(pEstarFileQA.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).ESTARfileQaComplete = Double.valueOf(pEstarFileQA.get('expr0'));
+                                                  } 
+                                               //mapNametoWrapper.get(RaterName).ESTARfileQaComplete = Double.valueOf(pEstarFileQA.get('expr0'));
+                                           }
+                                          
+             for(AggregateResult pFileQA: [select HERS_Rater_Name_SERH__r.name, count(id)
+                                           from inspections__c
+                                           Where QA_Year_SERH__c = :yearStr
+                                           and recordTypeID = '0120B0000005kLZQAY'
+                                           Group By HERS_Rater_Name_SERH__r.name]){
+                                               String RaterName = string.valueof(pFileQA.get('name'));
+                                               if(mapNametoWrapper.get(RaterName)==null){
+                                                   //make a cContact
+                                                   cContact Contact = new cContact();
+                                                   Contact.TotalFileQaComplete = Double.valueOf(pFileQA.get('expr0'));
+                                                   Contact.Name = RaterName;
+                                                   mapNametoWrapper.put(RaterName, Contact);
+                                               } else{
+                                                   mapNametoWrapper.get(RaterName).TotalFileQaComplete = Double.valueOf(pFileQA.get('expr0'));
+                                                   //mapNametoWrapper.get(RaterName).ESTARfileQaNeed = Math.ceil(mapNametoWrapper.get(RaterName).ESTARfield/10);
+                                               }   
+                                           }
+            for(String key: mapNametoWrapper.keySet()){
+                mapNametoWrapper.get(key).doMath();
+                if(mapNametoWrapper.get(key).ESTARfileQaLeft > 0 || mapNametoWrapper.get(key).TotalFileQaLeft > 0){
+                    contactList.add(mapNametoWrapper.get(key));
+                }  
+            }
+        }
+        return contactList;
+    }
+  
+    public class cContact {
+        Public String Name {get; set;}
+        Public Double ESTARfiles {get; set;}
+        Public Double ESTARfileQaNeed {get; set;}
+        Public Double ESTARfileQaComplete {get; set;}
+        Public Double ESTARfileQaLeft {get; set;}
+        
+        Public Double ESTARfield {get; set;}
+        Public Double ESTARfieldQaNeed {get;set;}
+        Public Double ESTARfieldQaComplete {get;set;}
+        Public Double ESTARfieldQaLeft {get; set;}
+        
+        Public Double TotalFiles {get; set;}
+        Public Double TotalFileQaNeed {get; set;}
+        Public Double TotalFileQaComplete {get; set;}
+        Public Double TotalFileQaLeft {get; set;}
+        
+        Public Double TotalFields {get; set;}
+        Public Double TotalFieldQaNeed {get; set;}
+        Public Double TotalFieldQaComplete {get; set;} 
+        Public Double TotalFieldQaLeft {get; set;}
+        
+        Public void doMath(){
+            if (ESTARfiles == null){
+                ESTARfiles = 0;
+            }
+            if (ESTARfield == null){
+                ESTARfield = 0;
+            }
+            if (Totalfiles == null){
+                Totalfiles = 0;
+            }
+            if (TotalFields == null){
+                TotalFields = 0;
+            }
+            
+            if (ESTARfileQaNeed == null){
+                ESTARfileQaNeed = 0;
+            }
+            if(ESTARfileQaComplete == null){
+                ESTARfileQaComplete = 0;
+            }
+            if(ESTARfieldQANeed==null){
+                ESTARfieldQANeed=0;
+            }
+            if(ESTARfieldQaComplete==null){
+                ESTARfieldQaComplete=0;
+            }
+            if(TotalFileQaNeed==null){
+                TotalFileQaNeed=0;
+            }
+            if(TotalFileQaComplete==null){
+                TotalFileQaComplete=0;
+            }
+            if(TotalFieldQaNeed==null){
+                TotalFieldQaNeed=0;
+            }
+            if(TotalFieldQaComplete==null){
+                TotalFieldQaComplete=0;
+            }
+            
+            ESTARfileQaNeed = Math.ceil(ESTARfiles/10);
+            ESTARfieldQaNeed = Math.ceil(ESTARfield/100);
+            TotalFileQaNeed = Math.ceil(TotalFiles/10);
+            TotalFieldQaNeed = Math.ceil(TotalFields/100);
+            
+            ESTARfileQaLeft = ESTARfileQaNeed - ESTARfileQaComplete;
+       		ESTARfieldQaLeft = ESTARfieldQANeed - ESTARfieldQaComplete;
+            
+            TotalFileQaLeft = TotalFileQaNeed - TotalFileQaComplete;
+            TotalFieldQaLeft = TotalFieldQaNeed - TotalFieldQaComplete;
+        }
+       
+        //This is the contructor method. When we create a new cContact object we pass a 
+        //Contact that is set to the con property. We also set the selected value to false
+        public cContact() {  
+        }
+    }   
+    
+    
+    
+}

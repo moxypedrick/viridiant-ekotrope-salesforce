@@ -1,0 +1,177 @@
+public with sharing class serhQaAssignment {
+    List<InspWrapper> insps {get;set;}
+    private String state = '';
+    public String lastRefresh {get; set;}
+    public map<id, id> ContoUser {get; set;}
+    // instantiate the StandardSetController from a query locator
+    public ApexPages.StandardSetController con {
+        get {
+            if(con == null) {
+                con = new ApexPages.StandardSetController(Database.getQueryLocator([Select id, Project__r.id, project__c,
+                                                                                    Project__r.Name, Status__c, Name_of_Technician__r.Name,
+                                                                                    QA_Year_SERH__c, RecordTypeId, Ready_for_Review__c,
+                                                                                    Energy_STAR__c, HERS_Rater_Name_SERH__r.Name
+                                                                                    from Inspections__c where Status__c= 'New'
+                                                                                    and recordtypeid = '0120B0000005kLZQAY'
+                                                                                   ]));
+                // sets the number of records in each page set
+                con.setPageSize(10);    
+            }
+            List<AsyncApexJob> jobList = [SELECT Id, Status, ApexClass.Name, completeddate
+                      FROM AsyncApexJob where apexclass.name='SERH' and Status='Completed'
+                      Order by CompletedDate desc limit 1];
+            if (joblist.size()>0) lastRefresh = joblist.get(0).completedDate.format();
+            
+            return con;
+        }
+        set;
+    }
+
+    // returns a list of wrapper objects for the sObjects in the current page set
+    public List<InspWrapper> getInspections() {
+        insps = new List<InspWrapper>();
+        for (Inspections__c inspi : (List<Inspections__c>)con.getRecords())
+            insps.add(new InspWrapper(inspi));
+        System.Debug('found '+String.valueOf(insps.size()));
+        return insps;
+    }
+  
+  
+    public class InspWrapper {
+  	    public Boolean checked{ get; set; }
+ 	    public Inspections__c insp { get; set;}
+        public String project {get; set;}
+        //public String ekoId {get; set;}
+        //public String creaxDate {get; set;}
+        public String QA_Year_SERH {get; set;}
+        public String ESv3Status {get; set;}
+        public String inspStatus {get; set;}
+        public string Technician {get; set;}
+        public String Ready_for_Review {get; set;}
+        public String HERS_Rater {get; set;}
+        //public String Field_Rater {get; set;}
+        public id projectID {get; set;}
+        public id inspectionID {get; set;}
+        //public
+
+       /* public InspWrapper(){
+            checked = false;
+            project = '';
+            insp = new Inspections__c();
+            QA_Year_SERH = '';
+      		inspStatus = '';
+            Technician = 'Joe Cooper';
+            HERS_Rater = '';
+            //Field_Rater = '';
+            ESv3Status = 'Fail';
+            Ready_for_Review = '';
+            //ekoId = '';
+            
+        }*/
+
+        public InspWrapper(Inspections__c p){
+            insp = p;
+            checked = false;
+            project = p.Project__r.Name;
+            //ekoId = p.Project__r.Ekotrope_ID__c;
+            QA_Year_SERH = p.QA_Year_SERH__c;
+            inspStatus = p.Status__c;
+            Technician = 'Joe Cooper';
+            HERS_Rater = p.HERS_Rater_Name_SERH__r.Name;
+            
+            projectID = p.Project__r.id;
+            inspectionID = p.id;
+            
+            if(p.Ready_for_Review__c == null){
+                Ready_for_Review = 'Not Ready';
+            } else{
+                Ready_for_Review = p.Ready_for_Review__c.format();
+            }
+            
+            if(p.Energy_STAR__c){
+                ESv3Status = 'Pass';
+            }
+            else{
+                ESv3Status = 'Fail';
+            }
+		}     
+    }
+    
+    public String Technicians;
+    
+    public List<SelectOption> getItems() {
+        List<Contact> conList = [SELECT Name, id, (select id from users where isactive=true)
+                                 from Contact where Show_in_SERH_as_QADd__c = true Order By Name];
+        
+        List<SelectOption> options = new List<SelectOption>();
+        ConToUser = new Map<id, Id>();
+        
+        options.add(new SelectOption('','Select QAD(d)'));
+        System.debug('there are ' + conList.size()+ 'QAD(d)s');
+        
+        //ContoUser.clear();
+        for (contact currCon : conlist){
+            options.add(new SelectOption(currCon.id, currCon.Name));
+            system.debug(currCon.users.size());
+            if(currCon.users.size() > 0){
+            ConToUser.put(currCon.id, currCon.Users.get(0).id);
+            System.debug('I put '+currCon.Users.get(0).id+' in the list, m8.');
+            }
+            
+        }
+        return options;
+    }
+
+    public String getTechnicians() {
+            //If multiselect is false, technicians must be of type String
+            return Technicians;
+        }
+    
+    public void setTechnicians(String Technicians) {
+            //If multiselect is false, technicians must be of type String
+            this.Technicians = Technicians;	
+        }
+        
+    public PageReference assign() {
+         if (insps.size() > 0){
+             List<Inspections__c> updateList = new List<Inspections__c>();
+             List<Project__share> shareList = new List<Project__share>();
+             for (InspWrapper p : insps) {
+             	if (p.checked){
+                    
+                    p.insp.Name_of_Technician__c = getTechnicians();
+                    p.insp.Status__c = 'Needs Review';
+                    updateList.add(p.insp);
+                    
+                    /*
+                    //projToUpload.add(p.proj);
+                    Inspections__c inspectionRecord;
+                    inspectionRecord = [SELECT Name_of_Technician__c, ID, Project__c, Name_of_Technician__r.Name
+                             FROM Inspections__c WHERE ID = :p.inspectionID];
+                    System.debug(getTechnicians());
+                    System.debug(inspectionRecord);
+                   
+                    inspectionRecord.Name_of_Technician__c = getTechnicians();
+                    inspectionRecord.Status__c = 'Needs Review';
+                    update inspectionRecord;*/
+                    id tehUser = ConToUser.get(getTechnicians());
+                    if(tehUser != null){
+                        shareList.add(new Project__share(userorgroupid=tehUser, AccessLevel = 'Edit', Parentid=p.insp.Project__c));  
+                    }
+                }
+             }     
+             update updateList;
+             insert shareList;
+         } 
+        return null;
+     }
+    
+    public void syncWithEkotrope(){
+        serhSchedulable ssched = new serhSchedulable();
+        if(!Test.isRunningTest()) ssched.execute(null);
+        ApexPages.addMessage(new ApexPages.message(ApexPages.severity.INFO,'Ekotrope sync request submitted. Please wait a minute or more as projects are updated.'));
+    }
+
+    
+    
+}

@@ -1,0 +1,1572 @@
+@IsTest
+
+public class serhRecordConstructorTest {
+        
+    static testMethod void TestconstructProject(){
+        Account testacct = new Account(name='Ecosouth Green Building Services', Ekotrope_ID__c='PKYGl435');
+        insert(testacct);
+        Contact joeTesta = new Contact(LastName = 'Testa', FirstName = 'Joe', accountid=testacct.id);
+        insert(joeTesta);
+        
+        String HOUSEjson = '{'+
+    '    \"id\": \"g3pRyvPB\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\",'+
+    '    \"energy\": {'+
+    '        \"summary\": {'+
+    '            \"coolingConsumption\": 4.468182278216976,'+
+    '            \"heatingConsumption\": 8.329091401684753,'+
+    '            \"waterHeatingConsumption\": 6.081042043553061,'+
+    '            \"cost\": 1643.051,'+
+    '            \"solarGeneration\": 0,'+
+    '            \"winterElectricPowerPeak\": 2.9075602817864183,'+
+    '            \"summerElectricPowerPeak\": 2.2745205142463782,'+
+    '            \"lightingAndAppliancesConsumption\": 25.80460945421121,'+
+    '            \"coolingCost\": 157.101,'+
+    '            \"heatingCost\": 292.85,'+
+    '            \"waterHeatingCost\": 213.809,'+
+    '            \"lightingAndAppliancesCost\": 907.29,'+
+    '            \"serviceCharges\": 71.999,'+
+    '            \"generationSavings\": 0,'+
+    '            \"generationRevenue\": 0'+
+    '        },'+
+    '        \"breakdown\": {'+
+    '            \"byFuel\": ['+
+    '                {'+
+    '                    \"fuel\": \"NATURAL_GAS\",'+
+    '                    \"heatingConsumption\": 0,'+
+    '                    \"coolingConsumption\": 0,'+
+    '                    \"waterHeatingConsumption\": 0,'+
+    '                    \"lightingAndAppliancesConsumption\": 0,'+
+    '                    \"cost\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"fuel\": \"ELECTRIC\",'+
+    '                    \"heatingConsumption\": 8.329091401684753,'+
+    '                    \"coolingConsumption\": 4.468182278216976,'+
+    '                    \"waterHeatingConsumption\": 6.081042043553061,'+
+    '                    \"lightingAndAppliancesConsumption\": 25.80460945421121,'+
+    '                    \"cost\": 1643.0516492466095'+
+    '                },'+
+    '                {'+
+    '                    \"fuel\": \"OIL\",'+
+    '                    \"heatingConsumption\": 0,'+
+    '                    \"coolingConsumption\": 0,'+
+    '                    \"waterHeatingConsumption\": 0,'+
+    '                    \"lightingAndAppliancesConsumption\": 0,'+
+    '                    \"cost\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"fuel\": \"PROPANE\",'+
+    '                    \"heatingConsumption\": 0,'+
+    '                    \"coolingConsumption\": 0,'+
+    '                    \"waterHeatingConsumption\": 0,'+
+    '                    \"lightingAndAppliancesConsumption\": 0,'+
+    '                    \"cost\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"fuel\": \"WOOD\",'+
+    '                    \"heatingConsumption\": 0,'+
+    '                    \"coolingConsumption\": 0,'+
+    '                    \"waterHeatingConsumption\": 0,'+
+    '                    \"lightingAndAppliancesConsumption\": 0,'+
+    '                    \"cost\": 0'+
+    '                }'+
+    '            ],'+
+    '            \"byComponent\": ['+
+    '                {'+
+    '                    \"category\": \"FOUNDATION_WALL\",'+
+    '                    \"heatingLoad\": 0,'+
+    '                    \"coolingLoad\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"SLAB\",'+
+    '                    \"heatingLoad\": 5.107850659177285,'+
+    '                    \"coolingLoad\": 1.123719240836964'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"FRAMED_FLOOR\",'+
+    '                    \"heatingLoad\": 0.8336871884582695,'+
+    '                    \"coolingLoad\": 0.1834129700025053'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"ABOVE_GROUND_WALL\",'+
+    '                    \"heatingLoad\": 3.1767994567704534,'+
+    '                    \"coolingLoad\": 1.9543217189077506'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"RIM_JOIST\",'+
+    '                    \"heatingLoad\": 0.35167878222786525,'+
+    '                    \"coolingLoad\": 0.07736878788214462'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"ROOF\",'+
+    '                    \"heatingLoad\": 2.2448914786058043,'+
+    '                    \"coolingLoad\": 0.9330078755675975'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"DOOR\",'+
+    '                    \"heatingLoad\": 0.9007626260623025,'+
+    '                    \"coolingLoad\": 0.19816638384178425'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"WINDOW\",'+
+    '                    \"heatingLoad\": 2.8689289640084397,'+
+    '                    \"coolingLoad\": 0.6311599325360792'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"SKYLIGHT\",'+
+    '                    \"heatingLoad\": 0,'+
+    '                    \"coolingLoad\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"INFILTRATION\",'+
+    '                    \"heatingLoad\": 2.5578968914918194,'+
+    '                    \"coolingLoad\": 0.389089183833028'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"MECHANICAL_VENTILATION\",'+
+    '                    \"heatingLoad\": 4.314048311237595,'+
+    '                    \"coolingLoad\": 0.9490839526656487'+
+    '                }'+
+    '            ]'+
+    '        }'+
+    '    },'+
+    '    \"compliance\": ['+
+    '        {'+
+    '            \"code\": \"IECC2009Performance\",'+
+    '            \"complianceStatus\": \"Pass\",'+
+    '            \"targetHers\": 0'+
+    '        }'+
+    '    ],'+
+    '    \"hersScore\": 72,'+
+    '    \"hersScoreNoPv\": 72,'+
+    '    \"buildingType\": \"EkotropeAsModeled\",'+
+    '    \"emissions\": {'+
+    '        \"summary\": {'+
+    '            \"totalCo2\": 8.968086497783455,'+
+    '            \"totalSo2\": 20.94735532328982,'+
+    '            \"totalNox\": 11.782887369350524'+
+    '        },'+
+    '        \"byEnergySink\": {'+
+    '            \"heating\": {'+
+    '                \"co2\": 1.6716902897751384,'+
+    '                \"so2\": 3.9046780491098123,'+
+    '                \"nox\": 2.196381402624269'+
+    '            },'+
+    '            \"cooling\": {'+
+    '                \"co2\": 0.8967865241495383,'+
+    '                \"so2\": 2.0946838520281186,'+
+    '                \"nox\": 1.1782596667658165'+
+    '            },'+
+    '            \"hotWater\": {'+
+    '                \"co2\": 1.220495543351317,'+
+    '                \"so2\": 2.8507925100176745,'+
+    '                \"nox\": 1.6035707868849418'+
+    '            },'+
+    '            \"lightsAndAppliances\": {'+
+    '                \"co2\": 5.179114140507462,'+
+    '                \"so2\": 12.097200912134216,'+
+    '                \"nox\": 6.804675513075496'+
+    '            },'+
+    '            \"pvOffset\": {'+
+    '                \"co2\": 0,'+
+    '                \"so2\": 0,'+
+    '                \"nox\": 0'+
+    '            }'+
+    '        }'+
+    '    }'+
+    '}';
+        analysisJson2Apex.pAnalysisJson2Apex hPlan = analysisJson2Apex.pAnalysisJson2Apex.parse(HOUSEjson);
+       
+        
+        
+        String json = '{'+
+    '    \"id\": \"jL98DZr2\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH  \",'+
+    '    \"createdAt\": \"2018-05-17T20:15:14.000+0000\",'+
+    '    \"createdBy\": \"jmerritt\",'+
+    '    \"lastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"lastSavedBy\": \"jmerritt\",'+
+    '    \"selfOrPlanLastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"isLocked\": false,'+
+    '    \"status\": \"SUBMITTED_TO_REGISTRY\",'+
+    '    \"location\": {'+
+    '        \"streetAddress\": \"6028 Townes Way \",'+
+    '        \"city\": \"Columbus \",'+
+    '        \"state\": \"GA\",'+
+    '        \"zip\": \"31909\",'+
+    '        \"climateZone\": {'+
+    '            \"zone\": 3,'+
+    '            \"moistureRegime\": \"MOIST\"'+
+    '        }'+
+    '    },'+
+    '    \"notes\": \"\",'+
+    '    \"model\": \"Inside Unit \",'+
+    '    \"community\": \"Sonoma Point TownHomes\",'+
+    '    \"builder\": \"Grayhawk Homes\",'+
+    '    \"builderPermitDateOrNumber\": \"\",'+
+    '    \"hersRatingDetails\": {'+
+    '        \"rater\": {'+
+    '            \"name\": \"Joel Merritt\",'+
+    '            \"email\": \"SoutheasternEnergyConsultants@gmail.com\",'+
+    '            \"resnetRaterId\": \"6081583\",'+
+    '            \"resnetProviderId\": \"1998-057\",'+
+    '            \"ratingCompany\": {'+
+    '                \"name\": \"Southeastern Energy Consultants\",'+
+    '                \"id\": \"JVYy0aqW\"'+
+    '            }'+
+    '        },'+
+    '        \"registryId\": \"277843467\",'+
+    '        \"ratingDate\": \"2018-05-31T16:24:51.000+0000\",'+
+    '        \"fieldRatingDate\": \"2018-05-14T00:00:00.000+0000\",'+
+    '        \"ratingType\": \"CONFIRMED\",'+
+    '        \"submittedPlanId\": \"g3pRyvPB\"'+
+    '    },'+
+    '    \"plans\": ['+
+    '        {'+
+    '            \"id\": \"g3pRyvPB\",'+
+    '            \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\"'+
+    '        }'+
+    '    ],'+
+    '    \"masterPlanId\": \"g3pRyvPB\",'+
+    '    \"resultsUnchangedSince\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"utilityRates\": ['+
+    '        {'+
+    '            \"fuel\": \"ELECTRIC\",'+
+    '            \"name\": \"Ga Power\"'+
+    '        }'+
+    '    ],'+
+    '    \"algorithmVersion\": \"2.2.5\"'+
+    '}';
+        String djson = '{'+
+    '    \"id\": \"jL98DZr2\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH  \",'+
+    '    \"createdAt\": \"2018-05-17T20:15:14.000+0000\",'+
+    '    \"createdBy\": \"jmerritt\",'+
+    '    \"lastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"lastSavedBy\": \"jmerritt\",'+
+    '    \"selfOrPlanLastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"isLocked\": false,'+
+    '    \"status\": \"SUBMITTED_FOR_QA\",'+
+    '    \"location\": {'+
+    '        \"streetAddress\": \"6028 Townes Way \",'+
+    '        \"city\": \"Columbus \",'+
+    '        \"state\": \"GA\",'+
+    '        \"zip\": \"31909\",'+
+    '        \"climateZone\": {'+
+    '            \"zone\": 3,'+
+    '            \"moistureRegime\": \"MOIST\"'+
+    '        }'+
+    '    },'+
+    '    \"notes\": \"\",'+
+    '    \"model\": \"Inside Unit \",'+
+    '    \"community\": \"Sonoma Point TownHomes\",'+
+    '    \"builder\": \"Grayhawk Homes\",'+
+    '    \"builderPermitDateOrNumber\": \"\",'+
+    '    \"hersRatingDetails\": {'+
+    '        \"rater\": {'+
+    '            \"name\": \"Joel Merritt\",'+
+    '            \"email\": \"SoutheasternEnergyConsultants@gmail.com\",'+
+    '            \"resnetRaterId\": \"6081583\",'+
+    '            \"resnetProviderId\": \"1998-057\",'+
+    '            \"ratingCompany\": {'+
+    '                \"name\": \"Southeastern Energy Consultants\",'+
+    '                \"id\": \"JVYy0aqW\"'+
+    '            }'+
+    '        },'+
+    '        \"registryId\": \"277843467\",'+
+    '        \"ratingType\": \"CONFIRMED\",'+
+    '        \"submittedPlanId\": \"g3pRyvPB\"'+
+    '    },'+
+    '    \"plans\": ['+
+    '        {'+
+    '            \"id\": \"g3pRyvPB\",'+
+    '            \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\"'+
+    '        }'+
+    '    ],'+
+    '    \"masterPlanId\": \"g3pRyvPB\",'+
+    '    \"resultsUnchangedSince\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"utilityRates\": ['+
+    '        {'+
+    '            \"fuel\": \"ELECTRIC\",'+
+    '            \"name\": \"Ga Power\"'+
+    '        }'+
+    '    ],'+
+    '    \"algorithmVersion\": \"2.2.5\"'+
+    '}';
+        
+        // projectJSON2Apex.aProjectJSON2Apex qProject = projectJSON2Apex.parse(newProject);
+    projectJSON2Apex.aProjectJSON2Apex aProject = projectJSON2Apex.aProjectJSON2Apex.parse(json);
+    projectJSON2Apex.aProjectJSON2Apex dProject = projectJSON2Apex.aProjectJSON2Apex.parse(djson);
+
+        list<string> codes = new list<string>();
+        codes.add('EnergyStarV3');
+      codes.add('IECC2009Performance');
+      codes.add('IECC2012Performance');
+      codes.add('DOEZeroEnergyReady');
+      codes.add('DukeNCHEROPerformance');
+        
+        SERHprojectRegistryUpdater updateNewProjects = new SERHprojectRegistryUpdater();
+        updateNewProjects.setCodesToCheck(codes);
+        updateNewProjects.setVariables('SUBMITTED_FOR_QA');
+        updateNewProjects.setSERHDataName('HERS');
+        updateNewProjects.setBuildingRun('EkotropeAsModeled', 'HERSReference', 'HERSRated');
+        Id newProjectBatchId = Database.executeBatch(updateNewProjects,15);
+        
+        
+        String HERSrater = '0033D00000OYKDi';
+        String ratingOrganization = '0013D00000URCRQ';
+        String status = 'SUBMITTED_TO_REGISTRY';
+        String updateStatus = 'update status';
+        
+        String dstatus = 'SUBMITTED_FOR_QA';
+        String dupdateStatus = 'do not update';
+        
+        test.startTest();
+        Project__c newProject = serhRecordConstructor.constructProject(aProject, Hplan, HERSrater, joetesta.id, ratingOrganization, status, updateStatus);
+        Project__c dnewProject = serhRecordConstructor.constructProject(dProject, Hplan, HERSrater, joetesta.id, ratingOrganization, dstatus, updateStatus);
+        system.assert(newProject != null);
+        test.stopTest();
+        
+    }
+       
+    static testMethod void TestconstructDataRecord(){
+        
+        String json = '{'+
+    '    \"id\": \"jL98DZr2\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH ESTAR REPEAT \",'+
+    '    \"createdAt\": \"2018-05-17T20:15:14.000+0000\",'+
+    '    \"createdBy\": \"jmerritt\",'+
+    '    \"lastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"lastSavedBy\": \"jmerritt\",'+
+    '    \"selfOrPlanLastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"isLocked\": false,'+
+    '    \"status\": \"SUBMITTED_TO_REGISTRY\",'+
+    '    \"location\": {'+
+    '        \"streetAddress\": \"6028 Townes Way \",'+
+    '        \"city\": \"Columbus \",'+
+    '        \"state\": \"GA\",'+
+    '        \"zip\": \"31909\",'+
+    '        \"climateZone\": {'+
+    '            \"zone\": 3,'+
+    '            \"moistureRegime\": \"MOIST\"'+
+    '        }'+
+    '    },'+
+    '    \"notes\": \"\",'+
+    '    \"model\": \"Inside Unit \",'+
+    '    \"community\": \"Sonoma Point TownHomes\",'+
+    '    \"builder\": \"Grayhawk Homes\",'+
+    '    \"builderPermitDateOrNumber\": \"\",'+
+    '    \"hersRatingDetails\": {'+
+    '        \"rater\": {'+
+    '            \"name\": \"Joel Merritt\",'+
+    '            \"email\": \"SoutheasternEnergyConsultants@gmail.com\",'+
+    '            \"resnetRaterId\": \"6081583\",'+
+    '            \"resnetProviderId\": \"1998-057\",'+
+    '            \"ratingCompany\": {'+
+    '                \"name\": \"Southeastern Energy Consultants\",'+
+    '                \"id\": \"JVYyEeYW\"'+
+    '            }'+
+    '        },'+
+    '        \"registryId\": \"277843467\",'+
+    '        \"ratingDate\": \"2018-05-31T16:24:51.000+0000\",'+
+    '        \"fieldRatingDate\": \"2018-05-14T00:00:00.000+0000\",'+
+    '        \"ratingType\": \"CONFIRMED\",'+
+    '        \"submittedPlanId\": \"g3pRyvPB\"'+
+    '    },'+
+    '    \"plans\": ['+
+    '        {'+
+    '            \"id\": \"g3pRyvPB\",'+
+    '            \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\"'+
+    '        }'+
+    '    ],'+
+    '    \"masterPlanId\": \"g3pRyvPB\",'+
+    '    \"resultsUnchangedSince\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"utilityRates\": ['+
+    '        {'+
+    '            \"fuel\": \"ELECTRIC\",'+
+    '            \"name\": \"Ga Power\"'+
+    '        }'+
+    '    ],'+
+    '    \"algorithmVersion\": \"2.2.5\"'+
+    '}';
+        projectJSON2Apex.aProjectJSON2Apex aProject = projectJSON2Apex.aProjectJSON2Apex.parse(json);
+        String abjson = '{'+
+    '    \"id\": \"jL98DZr2\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH ESTAR\",'+
+    '    \"createdAt\": \"2018-05-17T20:15:14.000+0000\",'+
+    '    \"createdBy\": \"jmerritt\",'+
+    '    \"lastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"lastSavedBy\": \"jmerritt\",'+
+    '    \"selfOrPlanLastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"isLocked\": false,'+
+    '    \"status\": \"SUBMITTED_TO_REGISTRY\",'+
+    '    \"location\": {'+
+    '        \"streetAddress\": \"6028 Townes Way \",'+
+    '        \"city\": \"Columbus \",'+
+    '        \"state\": \"GA\",'+
+    '        \"zip\": \"31909\",'+
+    '        \"climateZone\": {'+
+    '            \"zone\": 3,'+
+    '            \"moistureRegime\": \"MOIST\"'+
+    '        }'+
+    '    },'+
+    '    \"notes\": \"\",'+
+    '    \"model\": \"Inside Unit \",'+
+    '    \"community\": \"Sonoma Point TownHomes\",'+
+    '    \"builder\": \"Grayhawk Homes\",'+
+    '    \"builderPermitDateOrNumber\": \"\",'+
+    '    \"hersRatingDetails\": {'+
+    '        \"rater\": {'+
+    '            \"name\": \"Joel Merritt\",'+
+    '            \"email\": \"SoutheasternEnergyConsultants@gmail.com\",'+
+    '            \"resnetRaterId\": \"6081583\",'+
+    '            \"resnetProviderId\": \"1998-057\",'+
+    '            \"ratingCompany\": {'+
+    '                \"name\": \"Southeastern Energy Consultants\",'+
+    '                \"id\": \"JVYyEvYW\"'+
+    '            }'+
+    '        },'+
+    '        \"registryId\": \"277843467\",'+
+    '        \"ratingType\": \"CONFIRMED\",'+
+    '        \"submittedPlanId\": \"g3pRyvPB\"'+
+    '    },'+
+    '    \"plans\": ['+
+    '        {'+
+    '            \"id\": \"g3pRyvPB\",'+
+    '            \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\"'+
+    '        }'+
+    '    ],'+
+    '    \"masterPlanId\": \"g3pRyvPB\",'+
+    '    \"resultsUnchangedSince\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"utilityRates\": ['+
+    '        {'+
+    '            \"fuel\": \"ELECTRIC\",'+
+    '            \"name\": \"Ga Power\"'+
+    '        }'+
+    '    ],'+
+    '    \"algorithmVersion\": \"2.2.5\"'+
+    '}';
+        projectJSON2Apex.aProjectJSON2Apex abProject = projectJSON2Apex.aProjectJSON2Apex.parse(abjson);
+        String abcjson = '{'+
+    '    \"id\": \"jL98DZr2\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH Repeat\",'+
+    '    \"createdAt\": \"2018-05-17T20:15:14.000+0000\",'+
+    '    \"createdBy\": \"jmerritt\",'+
+    '    \"lastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"lastSavedBy\": \"jmerritt\",'+
+    '    \"selfOrPlanLastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"isLocked\": false,'+
+    '    \"status\": \"SUBMITTED_TO_REGISTRY\",'+
+    '    \"location\": {'+
+    '        \"streetAddress\": \"6028 Townes Way \",'+
+    '        \"city\": \"Columbus \",'+
+    '        \"state\": \"GA\",'+
+    '        \"zip\": \"31909\",'+
+    '        \"climateZone\": {'+
+    '            \"zone\": 3,'+
+    '            \"moistureRegime\": \"MOIST\"'+
+    '        }'+
+    '    },'+
+    '    \"notes\": \"\",'+
+    '    \"model\": \"Inside Unit \",'+
+    '    \"community\": \"Sonoma Point TownHomes\",'+
+    '    \"builder\": \"Grayhawk Homes\",'+
+    '    \"builderPermitDateOrNumber\": \"\",'+
+    '    \"hersRatingDetails\": {'+
+    '        \"rater\": {'+
+    '            \"name\": \"Joel Merritt\",'+
+    '            \"email\": \"SoutheasternEnergyConsultants@gmail.com\",'+
+    '            \"resnetRaterId\": \"6081583\",'+
+    '            \"resnetProviderId\": \"1998-057\",'+
+    '            \"ratingCompany\": {'+
+    '                \"name\": \"Southeastern Energy Consultants\",'+
+    '                \"id\": \"JVYyEvYW\"'+
+    '            }'+
+    '        },'+
+    '        \"registryId\": \"277843467\",'+
+    '        \"ratingType\": \"CONFIRMED\",'+
+    '        \"submittedPlanId\": \"g3pRyvPB\"'+
+    '    },'+
+    '    \"plans\": ['+
+    '        {'+
+    '            \"id\": \"g3pRyvPB\",'+
+    '            \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\"'+
+    '        }'+
+    '    ],'+
+    '    \"masterPlanId\": \"g3pRyvPB\",'+
+    '    \"resultsUnchangedSince\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"utilityRates\": ['+
+    '        {'+
+    '            \"fuel\": \"ELECTRIC\",'+
+    '            \"name\": \"Ga Power\"'+
+    '        }'+
+    '    ],'+
+    '    \"algorithmVersion\": \"2.2.5\"'+
+    '}';
+        projectJSON2Apex.aProjectJSON2Apex abcProject = projectJSON2Apex.aProjectJSON2Apex.parse(abcjson);
+        String abcdjson = '{'+
+    '    \"id\": \"jL98DZr2\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH\",'+
+    '    \"createdAt\": \"2018-05-17T20:15:14.000+0000\",'+
+    '    \"createdBy\": \"jmerritt\",'+
+    '    \"lastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"lastSavedBy\": \"jmerritt\",'+
+    '    \"selfOrPlanLastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"isLocked\": false,'+
+    '    \"status\": \"SUBMITTED_TO_REGISTRY\",'+
+    '    \"location\": {'+
+    '        \"streetAddress\": \"6028 Townes Way \",'+
+    '        \"city\": \"Columbus \",'+
+    '        \"state\": \"GA\",'+
+    '        \"zip\": \"31909\",'+
+    '        \"climateZone\": {'+
+    '            \"zone\": 3,'+
+    '            \"moistureRegime\": \"MOIST\"'+
+    '        }'+
+    '    },'+
+    '    \"notes\": \"\",'+
+    '    \"model\": \"Inside Unit \",'+
+    '    \"community\": \"Sonoma Point TownHomes\",'+
+    '    \"builder\": \"Grayhawk Homes\",'+
+    '    \"builderPermitDateOrNumber\": \"\",'+
+    '    \"hersRatingDetails\": {'+
+    '        \"rater\": {'+
+    '            \"name\": \"Joel Merritt\",'+
+    '            \"email\": \"SoutheasternEnergyConsultants@gmail.com\",'+
+    '            \"resnetRaterId\": \"6081583\",'+
+    '            \"resnetProviderId\": \"1998-057\",'+
+    '            \"ratingCompany\": {'+
+    '                \"name\": \"Southeastern Energy Consultants\",'+
+    '                \"id\": \"JVYyEvYW\"'+
+    '            }'+
+    '        },'+
+    '        \"registryId\": \"277843467\",'+
+    '        \"ratingType\": \"CONFIRMED\",'+
+    '        \"submittedPlanId\": \"g3pRyvPB\"'+
+    '    },'+
+    '    \"plans\": ['+
+    '        {'+
+    '            \"id\": \"g3pRyvPB\",'+
+    '            \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\"'+
+    '        }'+
+    '    ],'+
+    '    \"masterPlanId\": \"g3pRyvPB\",'+
+    '    \"resultsUnchangedSince\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"utilityRates\": ['+
+    '        {'+
+    '            \"fuel\": \"ELECTRIC\",'+
+    '            \"name\": \"Ga Power\"'+
+    '        }'+
+    '    ],'+
+    '    \"algorithmVersion\": \"2.2.5\"'+
+    '}';
+        projectJSON2Apex.aProjectJSON2Apex abcdProject = projectJSON2Apex.aProjectJSON2Apex.parse(abcdjson);
+            String abcdejson = '{'+
+    '    \"id\": \"jL98DZr2\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH repeat estar\",'+
+    '    \"createdAt\": \"2018-05-17T20:15:14.000+0000\",'+
+    '    \"createdBy\": \"jmerritt\",'+
+    '    \"lastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"lastSavedBy\": \"jmerritt\",'+
+    '    \"selfOrPlanLastSavedAt\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"isLocked\": false,'+
+    '    \"status\": \"SUBMITTED_TO_REGISTRY\",'+
+    '    \"location\": {'+
+    '        \"streetAddress\": \"6028 Townes Way \",'+
+    '        \"city\": \"Columbus \",'+
+    '        \"state\": \"GA\",'+
+    '        \"zip\": \"31909\",'+
+    '        \"climateZone\": {'+
+    '            \"zone\": 3,'+
+    '            \"moistureRegime\": \"MOIST\"'+
+    '        }'+
+    '    },'+
+    '    \"notes\": \"\",'+
+    '    \"model\": \"Inside Unit \",'+
+    '    \"community\": \"Sonoma Point TownHomes\",'+
+    '    \"builder\": \"Grayhawk Homes\",'+
+    '    \"builderPermitDateOrNumber\": \"\",'+
+    '    \"hersRatingDetails\": {'+
+    '        \"rater\": {'+
+    '            \"name\": \"Joel Merritt\",'+
+    '            \"email\": \"SoutheasternEnergyConsultants@gmail.com\",'+
+    '            \"resnetRaterId\": \"6081583\",'+
+    '            \"resnetProviderId\": \"1998-057\",'+
+    '            \"ratingCompany\": {'+
+    '                \"name\": \"Southeastern Energy Consultants\",'+
+    '                \"id\": \"JVYyEvYW\"'+
+    '            }'+
+    '        },'+
+    '        \"registryId\": \"277843467\",'+
+    '        \"ratingType\": \"CONFIRMED\",'+
+    '        \"submittedPlanId\": \"g3pRyvPB\"'+
+    '    },'+
+    '    \"plans\": ['+
+    '        {'+
+    '            \"id\": \"g3pRyvPB\",'+
+    '            \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\"'+
+    '        }'+
+    '    ],'+
+    '    \"masterPlanId\": \"g3pRyvPB\",'+
+    '    \"resultsUnchangedSince\": \"2018-05-31T16:24:51.000+0000\",'+
+    '    \"utilityRates\": ['+
+    '        {'+
+    '            \"fuel\": \"ELECTRIC\",'+
+    '            \"name\": \"Ga Power\"'+
+    '        }'+
+    '    ],'+
+    '    \"algorithmVersion\": \"2.2.5\"'+
+    '}';
+        projectJSON2Apex.aProjectJSON2Apex abcdeProject = projectJSON2Apex.aProjectJSON2Apex.parse(abcdejson);
+        String ajson = '{'+
+    '    \"id\": \"g3pRyvPB\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\",'+
+    '    \"lighting\": {'+
+    '        \"percentEfficient\": {'+
+    '            \"interior\": 50,'+
+    '            \"exterior\": 0,'+
+    '            \"garage\": 0'+
+    '        }'+
+    '    },'+
+    '    \"appliances\": {'+
+    '        \"dishwasherEfficiencyType\": \"kWh\",'+
+    '        \"dishwasherEfficiency\": 268,'+
+    '        \"dishwasherPlaceSettings\": 12,'+
+    '        \"refrigeratorConsumption\": 691,'+
+    '        \"clothesDryer\": {'+
+    '            \"fuel\": \"ELECTRIC\",'+
+    '            \"combinedEfficiencyFactor\": 2.61739,'+
+    '            \"utilizationFactor\": \"TIMER_CONTROLS\"'+
+    '        },'+
+    '        \"clothesWasher\": {'+
+    '            \"labeledEnergyRating\": 704,'+
+    '            \"electricRate\": 0.0803,'+
+    '            \"gasRate\": 0.58,'+
+    '            \"annualGasCost\": 23,'+
+    '            \"capacity\": 2.874,'+
+    '            \"integratedModifiedEnergyFactor\": 0.33053'+
+    '        },'+
+    '        \"rangeOven\": {'+
+    '            \"fuel\": \"ELECTRIC\"'+
+    '        },'+
+    '        \"ceilingFan\": {'+
+    '            \"cfmPerWatt\": 84'+
+    '        }'+
+    '    },'+
+    '    \"thermalEnvelope\": {'+
+    '        \"summary\": {'+
+    '            \"conditionedArea\": 2313,'+
+    '            \"conditionedVolume\": 22080,'+
+    '            \"windowArea\": 190,'+
+    '            \"wallArea\": 2780,'+
+    '            \"floorArea\": 426,'+
+    '            \"ceilingArea\": 1583,'+
+    '            \"slabArea\": 1153,'+
+    '            \"totalThermalBoundaryArea\": 6098'+
+    '        },'+
+    '        \"infiltration\": {'+
+    '            \"cfm50\": 1920,'+
+    '            \"ach50\": 5.217391304347826,'+
+    '            \"effectiveLeakageArea\": 105.6,'+
+    '            \"specificLeakageArea\": 0.0003168456549935149,'+
+    '            \"heatingNaturalACH\": 0.3033367037411527,'+
+    '            \"coolingNaturalACH\": 0.3033367037411527'+
+    '        },'+
+    '        \"foundationType\": \"SLAB_ON_GRADE\",'+
+    '        \"slabs\": ['+
+    '            {'+
+    '                \"name\": \"Slab\",'+
+    '                \"encloses\": \"ConditionedSpace\",'+
+    '                \"surfaceArea\": 1153,'+
+    '                \"exteriorPerimeter\": 168,'+
+    '                \"exposedMasonryArea\": 0,'+
+    '                \"grade\": \"OnGrade\",'+
+    '                \"type\": {'+
+    '                    \"name\": \"Uninsulated\",'+
+    '                    \"description\": \"\",'+
+    '                    \"slabCompletelyInsulated\": false,'+
+    '                    \"perimeterRValue\": 0,'+
+    '                    \"underSlabRValue\": 0,'+
+    '                    \"underslabInsulationWidth\": 0,'+
+    '                    \"perimeterInsulationDepth\": 0'+
+    '                }'+
+    '            }'+
+    '        ],'+
+    '        \"framedFloors\": ['+
+    '            {'+
+    '                \"name\": \"gar to bonus\",'+
+    '                \"betweenInteriorAnd\": \"UnconditionedGarage\",'+
+    '                \"surfaceArea\": 362,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-19\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.0512091876725488,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 19,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"FiberglassBatts\"'+
+    '                        ],'+
+    '                        \"continuousR\": 0,'+
+    '                        \"framingSpacing\": ['+
+    '                            20'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            9.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.1112'+
+    '                        ]'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"Patio Ceiling to 2nd floor \",'+
+    '                \"betweenInteriorAnd\": \"ExposedExterior\",'+
+    '                \"surfaceArea\": 64,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-19\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.0512091876725488,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 19,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"FiberglassBatts\"'+
+    '                        ],'+
+    '                        \"continuousR\": 0,'+
+    '                        \"framingSpacing\": ['+
+    '                            20'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            9.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.1112'+
+    '                        ]'+
+    '                    }'+
+    '                }'+
+    '            }'+
+    '        ],'+
+    '        \"foundationWalls\": [],'+
+    '        \"walls\": ['+
+    '            {'+
+    '                \"name\": \"1st to Amb\",'+
+    '                \"surfaceColor\": \"Medium\",'+
+    '                \"betweenInteriorAnd\": \"ExposedExterior\",'+
+    '                \"surfaceArea\": 396,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-13 + R3\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.06781720820967996,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 13,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"FiberglassBatts\"'+
+    '                        ],'+
+    '                        \"continuousR\": 3,'+
+    '                        \"framingSpacing\": ['+
+    '                            16'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            3.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.23005'+
+    '                        ]'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"1st to Gar \",'+
+    '                \"surfaceColor\": \"Medium\",'+
+    '                \"betweenInteriorAnd\": \"UnconditionedGarage\",'+
+    '                \"surfaceArea\": 450,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-13\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.08975919403424493,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 13,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"FiberglassBatts\"'+
+    '                        ],'+
+    '                        \"continuousR\": 0,'+
+    '                        \"framingSpacing\": ['+
+    '                            16'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            3.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.23005'+
+    '                        ]'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"1st to adj townhome\",'+
+    '                \"surfaceColor\": \"Medium\",'+
+    '                \"betweenInteriorAnd\": \"ConditionedSpace\",'+
+    '                \"surfaceArea\": 558,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-13\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.08529439772409401,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 13,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"FiberglassBatts\"'+
+    '                        ],'+
+    '                        \"continuousR\": 0,'+
+    '                        \"framingSpacing\": ['+
+    '                            16'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            3.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.23'+
+    '                        ]'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"2nd to amb \",'+
+    '                \"surfaceColor\": \"Medium\",'+
+    '                \"betweenInteriorAnd\": \"ExposedExterior\",'+
+    '                \"surfaceArea\": 480,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-13 + R3\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.06781720820967996,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 13,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"FiberglassBatts\"'+
+    '                        ],'+
+    '                        \"continuousR\": 3,'+
+    '                        \"framingSpacing\": ['+
+    '                            16'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            3.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.23005'+
+    '                        ]'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"2nd to Adj Townhome\",'+
+    '                \"surfaceColor\": \"Medium\",'+
+    '                \"betweenInteriorAnd\": \"ConditionedSpace\",'+
+    '                \"surfaceArea\": 896,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-13\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.08529439772409401,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 13,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"FiberglassBatts\"'+
+    '                        ],'+
+    '                        \"continuousR\": 0,'+
+    '                        \"framingSpacing\": ['+
+    '                            16'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            3.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.23'+
+    '                        ]'+
+    '                    }'+
+    '                }'+
+    '            }'+
+    '        ],'+
+    '        \"rimJoists\": ['+
+    '            {'+
+    '                \"name\": \"Rim Joist toamb\",'+
+    '                \"betweenInteriorAnd\": \"ExposedExterior\",'+
+    '                \"surfaceArea\": 44,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R13+3\",'+
+    '                    \"description\": \"1st to AMb\",'+
+    '                    \"uFactor\": 0.0625,'+
+    '                    \"rFactor\": 16'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"rim to gar \",'+
+    '                \"betweenInteriorAnd\": \"UnconditionedGarage\",'+
+    '                \"surfaceArea\": 50,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R 13.0\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.07692307692307693,'+
+    '                    \"rFactor\": 13'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"rim to adjtownhome\",'+
+    '                \"betweenInteriorAnd\": \"ExposedExterior\",'+
+    '                \"surfaceArea\": 62,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R 13.0\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.07692307692307693,'+
+    '                    \"rFactor\": 13'+
+    '                }'+
+    '            }'+
+    '        ],'+
+    '        \"ceilings\": ['+
+    '            {'+
+    '                \"name\": \"Roof\",'+
+    '                \"surfaceColor\": \"Medium\",'+
+    '                \"betweenInteriorAnd\": \"VentedAttic\",'+
+    '                \"surfaceArea\": 12,'+
+    '                \"roofDeckArea\": 14,'+
+    '                \"clayConcreteRoofTiles\": false,'+
+    '                \"type\": {'+
+    '                    \"name\": \"Attic Door R5 Cont\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.15873015873015872,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 0,'+
+    '                        \"cavityInsulationGrade\": [],'+
+    '                        \"cavityInsulationMaterial\": [],'+
+    '                        \"continuousR\": 5,'+
+    '                        \"framingSpacing\": [],'+
+    '                        \"framingDepth\": [],'+
+    '                        \"framingFraction\": []'+
+    '                    },'+
+    '                    \"radiantBarrier\": true'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"R30 Blown Attic \",'+
+    '                \"surfaceColor\": \"Medium\",'+
+    '                \"betweenInteriorAnd\": \"VentedAttic\",'+
+    '                \"surfaceArea\": 1395,'+
+    '                \"roofDeckArea\": 1674,'+
+    '                \"clayConcreteRoofTiles\": false,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-30 Blown, Attic\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.0332856624549563,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 13,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"CelluloseAttic\"'+
+    '                        ],'+
+    '                        \"continuousR\": 17,'+
+    '                        \"framingSpacing\": ['+
+    '                            24'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            3.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.11'+
+    '                        ]'+
+    '                    },'+
+    '                    \"radiantBarrier\": true'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"R30 Batt Ceiling \",'+
+    '                \"surfaceColor\": \"Medium\",'+
+    '                \"betweenInteriorAnd\": \"VentedAttic\",'+
+    '                \"surfaceArea\": 176,'+
+    '                \"roofDeckArea\": 211,'+
+    '                \"clayConcreteRoofTiles\": false,'+
+    '                \"type\": {'+
+    '                    \"name\": \"R-30 Batt, Attic\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.03474340604896597,'+
+    '                    \"hasAssemblyDetails\": true,'+
+    '                    \"assemblyDetails\": {'+
+    '                        \"cavityR\": 30.799999999999997,'+
+    '                        \"cavityInsulationGrade\": ['+
+    '                            \"I\"'+
+    '                        ],'+
+    '                        \"cavityInsulationMaterial\": ['+
+    '                            \"FiberglassAttic\"'+
+    '                        ],'+
+    '                        \"continuousR\": 0,'+
+    '                        \"framingSpacing\": ['+
+    '                            24'+
+    '                        ],'+
+    '                        \"framingDepth\": ['+
+    '                            11.5'+
+    '                        ],'+
+    '                        \"framingFraction\": ['+
+    '                            0.11'+
+    '                        ]'+
+    '                    },'+
+    '                    \"radiantBarrier\": true'+
+    '                }'+
+    '            }'+
+    '        ],'+
+    '        \"windows\": ['+
+    '            {'+
+    '                \"name\": \"2FW 1,1,6\",'+
+    '                \"orientation\": \"Southwest\",'+
+    '                \"installedWallIndex\": 3,'+
+    '                \"surfaceArea\": 60,'+
+    '                \"type\": {'+
+    '                    \"name\": \"U35 SHGC23\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.35,'+
+    '                    \"SHGC\": 0.23'+
+    '                },'+
+    '                \"overhangDepth\": 1,'+
+    '                \"distanceOverhangToTop\": 1,'+
+    '                \"distanceOverhangToBottom\": 6,'+
+    '                \"shadingFactors\": {'+
+    '                    \"interior\": {'+
+    '                        \"summer\": 0.7,'+
+    '                        \"winter\": 0.85'+
+    '                    },'+
+    '                    \"adjacent\": {'+
+    '                        \"summer\": 1,'+
+    '                        \"winter\": 1'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"1BW 1,11,16\",'+
+    '                \"orientation\": \"Northeast\",'+
+    '                \"installedWallIndex\": 0,'+
+    '                \"surfaceArea\": 30,'+
+    '                \"type\": {'+
+    '                    \"name\": \"U35 SHGC23\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.35,'+
+    '                    \"SHGC\": 0.23'+
+    '                },'+
+    '                \"overhangDepth\": 1,'+
+    '                \"distanceOverhangToTop\": 11,'+
+    '                \"distanceOverhangToBottom\": 16,'+
+    '                \"shadingFactors\": {'+
+    '                    \"interior\": {'+
+    '                        \"summer\": 0.7,'+
+    '                        \"winter\": 0.85'+
+    '                    },'+
+    '                    \"adjacent\": {'+
+    '                        \"summer\": 1,'+
+    '                        \"winter\": 1'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"1BD 8,2,9\",'+
+    '                \"orientation\": \"Northeast\",'+
+    '                \"installedWallIndex\": 0,'+
+    '                \"surfaceArea\": 40,'+
+    '                \"type\": {'+
+    '                    \"name\": \"U28 SHGC22\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.28,'+
+    '                    \"SHGC\": 0.22'+
+    '                },'+
+    '                \"overhangDepth\": 8,'+
+    '                \"distanceOverhangToTop\": 2,'+
+    '                \"distanceOverhangToBottom\": 9,'+
+    '                \"shadingFactors\": {'+
+    '                    \"interior\": {'+
+    '                        \"summer\": 0.7,'+
+    '                        \"winter\": 0.85'+
+    '                    },'+
+    '                    \"adjacent\": {'+
+    '                        \"summer\": 1,'+
+    '                        \"winter\": 1'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"2BW 1,1,6\",'+
+    '                \"orientation\": \"Northeast\",'+
+    '                \"installedWallIndex\": 3,'+
+    '                \"surfaceArea\": 60,'+
+    '                \"type\": {'+
+    '                    \"name\": \"U35 SHGC23\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.35,'+
+    '                    \"SHGC\": 0.23'+
+    '                },'+
+    '                \"overhangDepth\": 1,'+
+    '                \"distanceOverhangToTop\": 1,'+
+    '                \"distanceOverhangToBottom\": 6,'+
+    '                \"shadingFactors\": {'+
+    '                    \"interior\": {'+
+    '                        \"summer\": 0.7,'+
+    '                        \"winter\": 0.85'+
+    '                    },'+
+    '                    \"adjacent\": {'+
+    '                        \"summer\": 1,'+
+    '                        \"winter\": 1'+
+    '                    }'+
+    '                }'+
+    '            }'+
+    '        ],'+
+    '        \"skylights\": [],'+
+    '        \"doors\": ['+
+    '            {'+
+    '                \"name\": \"1FD 3,2,9\",'+
+    '                \"installedWallIndex\": 0,'+
+    '                \"surfaceArea\": 20,'+
+    '                \"type\": {'+
+    '                    \"name\": \"Steel-polystyrene\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.5'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"1LD 20,2,9\",'+
+    '                \"installedWallIndex\": 1,'+
+    '                \"surfaceArea\": 20,'+
+    '                \"type\": {'+
+    '                    \"name\": \"Steel-polystyrene\",'+
+    '                    \"description\": \"\",'+
+    '                    \"uFactor\": 0.5'+
+    '                }'+
+    '            }'+
+    '        ]'+
+    '    },'+
+    '    \"mechanicals\": {'+
+    '        \"summary\": {'+
+    '            \"ductSystemCount\": 1,'+
+    '            \"ductLeakageTotal\": 163,'+
+    '            \"ductLeakageToOutside\": 91,'+
+    '            \"mechanicalVentilationRate\": 90'+
+    '        },'+
+    '        \"equipment\": ['+
+    '            {'+
+    '                \"equipmentType\": \"AIR_SOURCE_HEAT_PUMP\",'+
+    '                \"heating\": {'+
+    '                    \"efficiencyType\": \"HSPF\",'+
+    '                    \"percentLoad\": 100,'+
+    '                    \"efficiency\": 8.2'+
+    '                },'+
+    '                \"cooling\": {'+
+    '                    \"efficiencyType\": \"SEER\",'+
+    '                    \"percentLoad\": 100,'+
+    '                    \"efficiency\": 14'+
+    '                },'+
+    '                \"waterHeating\": {'+
+    '                    \"efficiencyType\": \"ENERGY_FACTOR\",'+
+    '                    \"percentLoad\": 0,'+
+    '                    \"efficiency\": 0'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"equipmentType\": \"HOT_WATER_HEATER\",'+
+    '                \"heating\": {'+
+    '                    \"efficiencyType\": \"AFUE\",'+
+    '                    \"percentLoad\": 0,'+
+    '                    \"efficiency\": 0'+
+    '                },'+
+    '                \"cooling\": {'+
+    '                    \"efficiencyType\": \"SEER\",'+
+    '                    \"percentLoad\": 0,'+
+    '                    \"efficiency\": 0'+
+    '                },'+
+    '                \"waterHeating\": {'+
+    '                    \"efficiencyType\": \"ENERGY_FACTOR\",'+
+    '                    \"percentLoad\": 100,'+
+    '                    \"efficiency\": 0.93'+
+    '                }'+
+    '            }'+
+    '        ],'+
+    '        \"mechanicalEquipment\": ['+
+    '            {'+
+    '                \"name\": \"Heat Pump\",'+
+    '                \"heatingPercentLoad\": 100,'+
+    '                \"coolingPercentLoad\": 100,'+
+    '                \"hotWaterPercentLoad\": 0,'+
+    '                \"type\": {'+
+    '                    \"name\": \"24K Heat Pump\",'+
+    '                    \"description\": \"24K Heat Pumo\",'+
+    '                    \"fuel\": \"ELECTRIC\",'+
+    '                    \"equipmentType\": \"AIR_SOURCE_HEAT_PUMP\",'+
+    '                    \"motorType\": \"SingleSpeed\",'+
+    '                    \"heating\": {'+
+    '                        \"efficiency\": 8.2,'+
+    '                        \"efficiencyType\": \"HSPF\",'+
+    '                        \"capacity\": 22.8'+
+    '                    },'+
+    '                    \"cooling\": {'+
+    '                        \"efficiency\": 14,'+
+    '                        \"efficiencyType\": \"SEER\",'+
+    '                        \"capacity\": 23.8'+
+    '                    },'+
+    '                    \"hotWater\": {'+
+    '                        \"efficiency\": 0,'+
+    '                        \"efficiencyType\": \"ENERGY_FACTOR\",'+
+    '                        \"isTankless\": false,'+
+    '                        \"tankSize\": 0'+
+    '                    }'+
+    '                }'+
+    '            },'+
+    '            {'+
+    '                \"name\": \"Water Heater\",'+
+    '                \"heatingPercentLoad\": 0,'+
+    '                \"coolingPercentLoad\": 0,'+
+    '                \"hotWaterPercentLoad\": 100,'+
+    '                \"type\": {'+
+    '                    \"name\": \"50 gal.  0.93EF Elec\",'+
+    '                    \"description\": \"Extra tank insulation (R) 0.0. \",'+
+    '                    \"fuel\": \"ELECTRIC\",'+
+    '                    \"equipmentType\": \"HOT_WATER_HEATER\",'+
+    '                    \"motorType\": \"SingleSpeed\",'+
+    '                    \"heating\": {'+
+    '                        \"efficiency\": 0,'+
+    '                        \"efficiencyType\": \"AFUE\",'+
+    '                        \"capacity\": 0'+
+    '                    },'+
+    '                    \"cooling\": {'+
+    '                        \"efficiency\": 0,'+
+    '                        \"efficiencyType\": \"SEER\",'+
+    '                        \"capacity\": 0'+
+    '                    },'+
+    '                    \"hotWater\": {'+
+    '                        \"efficiency\": 0.93,'+
+    '                        \"efficiencyType\": \"ENERGY_FACTOR\",'+
+    '                        \"isTankless\": false,'+
+    '                        \"tankSize\": 50'+
+    '                    }'+
+    '                }'+
+    '            }'+
+    '        ],'+
+    '        \"mechanicalVentilation\": ['+
+    '            {'+
+    '                \"ventilationType\": \"ExhaustOnly\",'+
+    '                \"operationalHoursPerDay\": 24,'+
+    '                \"watts\": 20,'+
+    '                \"ventilationRate\": 90,'+
+    '                \"recoveryEfficiency\": 0'+
+    '            }'+
+    '        ],'+
+    '        \"distributionSystems\": ['+
+    '            {'+
+    '                \"systemType\": \"ForcedAir\",'+
+    '                \"isTested\": true,'+
+    '                \"testedDetails\": {'+
+    '                    \"sqFtServed\": 2313,'+
+    '                    \"numberOfReturnGrilles\": 3,'+
+    '                    \"supplyDuctSurfaceArea\": 624.51,'+
+    '                    \"returnDuctSurfaceArea\": 346.95,'+
+    '                    \"leakageToOutside\": 91,'+
+    '                    \"ducts\": ['+
+    '                        {'+
+    '                            \"location\": \"ConditionedSpace\",'+
+    '                            \"percentSupplyArea\": 50,'+
+    '                            \"percentReturnArea\": 50,'+
+    '                            \"supplyR\": 8,'+
+    '                            \"returnR\": 8'+
+    '                        },'+
+    '                        {'+
+    '                            \"location\": \"AtticWellVentedRadiantBarrier\",'+
+    '                            \"percentSupplyArea\": 50,'+
+    '                            \"percentReturnArea\": 50,'+
+    '                            \"supplyR\": 8,'+
+    '                            \"returnR\": 8'+
+    '                        },'+
+    '                        {'+
+    '                            \"location\": \"ConditionedSpace\",'+
+    '                            \"percentSupplyArea\": 0,'+
+    '                            \"percentReturnArea\": 0,'+
+    '                            \"supplyR\": 8,'+
+    '                            \"returnR\": 8'+
+    '                        },'+
+    '                        {'+
+    '                            \"location\": \"ConditionedSpace\",'+
+    '                            \"percentSupplyArea\": 0,'+
+    '                            \"percentReturnArea\": 0,'+
+    '                            \"supplyR\": 8,'+
+    '                            \"returnR\": 8'+
+    '                        },'+
+    '                        {'+
+    '                            \"location\": \"ConditionedSpace\",'+
+    '                            \"percentSupplyArea\": 0,'+
+    '                            \"percentReturnArea\": 0,'+
+    '                            \"supplyR\": 8,'+
+    '                            \"returnR\": 8'+
+    '                        },'+
+    '                        {'+
+    '                            \"location\": \"ConditionedSpace\",'+
+    '                            \"percentSupplyArea\": 0,'+
+    '                            \"percentReturnArea\": 0,'+
+    '                            \"supplyR\": 8,'+
+    '                            \"returnR\": 8'+
+    '                        }'+
+    '                    ]'+
+    '                },'+
+    '                \"heatingEquipmentIndex\": 0,'+
+    '                \"coolingEquipmentIndex\": 0'+
+    '            }'+
+    '        ]'+
+    '    },'+
+    '    \"onsiteGenerations\": {'+
+    '        \"summary\": {'+
+    '            \"hasSolarGeneration\": false'+
+    '        },'+
+    '        \"solarGenerationSystems\": []'+
+    '    },'+
+    '    \"waterSystem\": {'+
+    '        \"fixtureEffectiveness\": \"LOW_FLOW\",'+
+    '        \"usingEstimatedHotWaterPipeLength\": false,'+
+    '        \"hotWaterPipeLength\": 32,'+
+    '        \"allHotWaterPipesInsulatedToAtLeastR3\": true'+
+    '    },'+
+    '    \"details\": {'+
+    '        \"bedrooms\": 3,'+
+    '        \"residenceType\": \"TownhouseInsideUnit\",'+
+    '        \"numberOfFloorsOnOrAboveGrade\": 2,'+
+    '        \"programmableThermostat\": true,'+
+    '        \"buildingType\": \"EkotropeAsModeled\",'+
+    '        \"unitsInBuilding\": 5'+
+    '    }'+
+            '}';     
+        planJson2Apex.aPlanJson2Apex qPlan = planJson2Apex.aPlanJson2Apex.parse(ajson);   
+        String bjson = '{'+
+    '    \"id\": \"g3pRyvPB\",'+
+    '    \"name\": \"Grayhawk 6028 Townes Way 44DSTH Inner Unit\",'+
+    '    \"energy\": {'+
+    '        \"summary\": {'+
+    '            \"coolingConsumption\": 4.468182278216976,'+
+    '            \"heatingConsumption\": 8.329091401684753,'+
+    '            \"waterHeatingConsumption\": 6.081042043553061,'+
+    '            \"cost\": 1643.051,'+
+    '            \"solarGeneration\": 0,'+
+    '            \"winterElectricPowerPeak\": 2.9075602817864183,'+
+    '            \"summerElectricPowerPeak\": 2.2745205142463782,'+
+    '            \"lightingAndAppliancesConsumption\": 25.80460945421121,'+
+    '            \"coolingCost\": 157.101,'+
+    '            \"heatingCost\": 292.85,'+
+    '            \"waterHeatingCost\": 213.809,'+
+    '            \"lightingAndAppliancesCost\": 907.29,'+
+    '            \"serviceCharges\": 71.999,'+
+    '            \"generationSavings\": 0,'+
+    '            \"generationRevenue\": 0'+
+    '        },'+
+    '        \"breakdown\": {'+
+    '            \"byFuel\": ['+
+    '                {'+
+    '                    \"fuel\": \"NATURAL_GAS\",'+
+    '                    \"heatingConsumption\": 0,'+
+    '                    \"coolingConsumption\": 0,'+
+    '                    \"waterHeatingConsumption\": 0,'+
+    '                    \"lightingAndAppliancesConsumption\": 0,'+
+    '                    \"cost\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"fuel\": \"ELECTRIC\",'+
+    '                    \"heatingConsumption\": 8.329091401684753,'+
+    '                    \"coolingConsumption\": 4.468182278216976,'+
+    '                    \"waterHeatingConsumption\": 6.081042043553061,'+
+    '                    \"lightingAndAppliancesConsumption\": 25.80460945421121,'+
+    '                    \"cost\": 1643.0516492466095'+
+    '                },'+
+    '                {'+
+    '                    \"fuel\": \"OIL\",'+
+    '                    \"heatingConsumption\": 0,'+
+    '                    \"coolingConsumption\": 0,'+
+    '                    \"waterHeatingConsumption\": 0,'+
+    '                    \"lightingAndAppliancesConsumption\": 0,'+
+    '                    \"cost\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"fuel\": \"PROPANE\",'+
+    '                    \"heatingConsumption\": 0,'+
+    '                    \"coolingConsumption\": 0,'+
+    '                    \"waterHeatingConsumption\": 0,'+
+    '                    \"lightingAndAppliancesConsumption\": 0,'+
+    '                    \"cost\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"fuel\": \"WOOD\",'+
+    '                    \"heatingConsumption\": 0,'+
+    '                    \"coolingConsumption\": 0,'+
+    '                    \"waterHeatingConsumption\": 0,'+
+    '                    \"lightingAndAppliancesConsumption\": 0,'+
+    '                    \"cost\": 0'+
+    '                }'+
+    '            ],'+
+    '            \"byComponent\": ['+
+    '                {'+
+    '                    \"category\": \"FOUNDATION_WALL\",'+
+    '                    \"heatingLoad\": 0,'+
+    '                    \"coolingLoad\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"SLAB\",'+
+    '                    \"heatingLoad\": 5.107850659177285,'+
+    '                    \"coolingLoad\": 1.123719240836964'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"FRAMED_FLOOR\",'+
+    '                    \"heatingLoad\": 0.8336871884582695,'+
+    '                    \"coolingLoad\": 0.1834129700025053'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"ABOVE_GROUND_WALL\",'+
+    '                    \"heatingLoad\": 3.1767994567704534,'+
+    '                    \"coolingLoad\": 1.9543217189077506'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"RIM_JOIST\",'+
+    '                    \"heatingLoad\": 0.35167878222786525,'+
+    '                    \"coolingLoad\": 0.07736878788214462'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"ROOF\",'+
+    '                    \"heatingLoad\": 2.2448914786058043,'+
+    '                    \"coolingLoad\": 0.9330078755675975'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"DOOR\",'+
+    '                    \"heatingLoad\": 0.9007626260623025,'+
+    '                    \"coolingLoad\": 0.19816638384178425'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"WINDOW\",'+
+    '                    \"heatingLoad\": 2.8689289640084397,'+
+    '                    \"coolingLoad\": 0.6311599325360792'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"SKYLIGHT\",'+
+    '                    \"heatingLoad\": 0,'+
+    '                    \"coolingLoad\": 0'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"INFILTRATION\",'+
+    '                    \"heatingLoad\": 2.5578968914918194,'+
+    '                    \"coolingLoad\": 0.389089183833028'+
+    '                },'+
+    '                {'+
+    '                    \"category\": \"MECHANICAL_VENTILATION\",'+
+    '                    \"heatingLoad\": 4.314048311237595,'+
+    '                    \"coolingLoad\": 0.9490839526656487'+
+    '                }'+
+    '            ]'+
+    '        }'+
+    '    },'+
+    '    \"compliance\": ['+
+    '        {'+
+    '            \"code\": \"IECC2009Performance\",'+
+    '            \"complianceStatus\": \"Pass\",'+
+    '            \"targetHers\": 12'+
+    '        },'+
+        '        {'+
+    '            \"code\": \"EnergyStarV3\",'+
+    '            \"complianceStatus\": \"Pass\",'+
+    '            \"targetHers\": 12'+
+    '        },'+    
+        '        {'+
+    '            \"code\": \"IECC2012Performance\",'+
+    '            \"complianceStatus\": \"Pass\",'+
+    '            \"targetHers\": 13'+
+    '        },'+
+        '        {'+
+    '            \"code\": \"DOEZeroEnergyReady\",'+
+    '            \"complianceStatus\": \"Pass\",'+
+    '            \"targetHers\": 0'+
+    '        },'+
+        '        {'+
+    '            \"code\": \"DukeNCHEROPerformance\",'+
+    '            \"complianceStatus\": \"Pass\",'+
+    '            \"targetHers\": 0'+
+    '        }'+
+    '    ],'+
+    '    \"hersScore\": 72,'+
+    '    \"hersScoreNoPv\": 72,'+
+    '    \"buildingType\": \"EkotropeAsModeled\",'+
+    '    \"emissions\": {'+
+    '        \"summary\": {'+
+    '            \"totalCo2\": 8.968086497783455,'+
+    '            \"totalSo2\": 20.94735532328982,'+
+    '            \"totalNox\": 11.782887369350524'+
+    '        },'+
+    '        \"byEnergySink\": {'+
+    '            \"heating\": {'+
+    '                \"co2\": 1.6716902897751384,'+
+    '                \"so2\": 3.9046780491098123,'+
+    '                \"nox\": 2.196381402624269'+
+    '            },'+
+    '            \"cooling\": {'+
+    '                \"co2\": 0.8967865241495383,'+
+    '                \"so2\": 2.0946838520281186,'+
+    '                \"nox\": 1.1782596667658165'+
+    '            },'+
+    '            \"hotWater\": {'+
+    '                \"co2\": 1.220495543351317,'+
+    '                \"so2\": 2.8507925100176745,'+
+    '                \"nox\": 1.6035707868849418'+
+    '            },'+
+    '            \"lightsAndAppliances\": {'+
+    '                \"co2\": 5.179114140507462,'+
+    '                \"so2\": 12.097200912134216,'+
+    '                \"nox\": 6.804675513075496'+
+    '            },'+
+    '            \"pvOffset\": {'+
+    '                \"co2\": 0,'+
+    '                \"so2\": 0,'+
+    '                \"nox\": 0'+
+    '            }'+
+    '        }'+
+    '    }'+
+    '}';
+    analysisJson2Apex.pAnalysisJson2Apex r = analysisJson2Apex.pAnalysisJson2Apex.parse(bjson);     
+        //Need a project that does not have ensign as hers rater
+        //need file name to include estar
+        //need file name to not include estar
+        //
+        
+        SERH_Data__c serhRecord = serhRecordConstructor.constructDataRecord(aProject, qPlan, r, r, r, 'HERS');
+        SERH_Data__c abserhRecord = serhRecordConstructor.constructDataRecord(abProject, qPlan, r, r, r, 'HERS');
+        SERH_Data__c abcserhRecord = serhRecordConstructor.constructDataRecord(abcProject, qPlan, r, r, r, 'IECC 2009');
+        SERH_Data__c abcdserhRecord = serhRecordConstructor.constructDataRecord(abcdProject, qPlan, r, r, r, 'IECC 2009');
+        SERH_Data__c abcdeserhRecord = serhRecordConstructor.constructDataRecord(abcdeProject, qPlan, r, r, r, 'IECC 2012');
+        
+system.assert(serhRecord != null);
+         
+
+        
+    }
+}

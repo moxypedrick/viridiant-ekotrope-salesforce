@@ -1,0 +1,115 @@
+global class SERH_uploadToBuildingRegistry implements Database.Batchable<Project__c>, Database.AllowsCallouts, Database.Stateful {
+    
+    global String authorization = '';
+    global List<Project__c> projectsToUpdate = new List<Project__c>();
+    global void setAuthorization(String auth){
+        authorization = auth;        
+    }
+    
+    global Iterable<Project__c> start(Database.BatchableContext bc){ 
+        system.debug('SERH_uploadToBuildingRegistry.start Start');
+        system.debug(Limits.getCpuTime());
+        for(Project__c existingProject : [Select Ekotrope_ID__c, Ekotrope_selfOrPlanLastSavedAt__c, Id, Energy_Star_v3__c, Name, HERS_Rater__c
+                                          FROM Project__c
+                                          WHERE Ekotrope_ID__c != null 
+                                          and RecordTypeId='0120B000000t8JVQAY'
+                                          and Project_Status__c = 'In Progress'])
+            {projectsToUpdate.add(existingProject);}  
+        system.debug('SERH_uploadToBuildingRegistry.start Finish');
+        system.debug(Limits.getCpuTime());
+        return projectsToUpdate;
+    }
+    
+    global void execute(Database.BatchableContext bc, List<Project__c> projectsToUpdate){
+        system.debug('SERH_uploadToBuildingRegistry.execute Start');
+        List<Log__c> errorLogs = new List<Log__c>();
+        system.debug(Limits.getCpuTime());
+        System.debug(projectsToUpdate);
+        Date uploadDate = Date.today();
+        for(Project__c currentProj : projectsToUpdate){
+            if(Test.isRunningTest()) {
+                Test.setMock(HttpCalloutMock.class, new YourHttpPutCalloutMockImpl());
+                System.Debug('Setting test mock YourHttpPutCalloutMockImpl');
+            }
+            
+            system.debug('SERH_uploadToBuildingRegistry.execute.SERH.putToBuildingRegistry Start');
+        	system.debug(Limits.getCpuTime());
+            HttpResponse uploadResponse = SERH.putToBuildingRegistry(authorization, currentProj.Ekotrope_ID__c);
+            
+            if(uploadResponse.getStatusCode() == 200){
+                String plan = String.valueOf(uploadResponse.getBody());
+                uploadResponseJSON2Apex upload = uploadResponseJSON2Apex.parse(plan);
+                system.debug('SERH_uploadToBuildingRegistry.execute.SERH.putToBuildingRegistry Finish');
+                system.debug(Limits.getCpuTime());
+                if(upload.registryId != null){
+                    currentProj.RESNET_Registry_ID__c = upload.registryId;
+                    currentProj.EC_Registration_Date__c = uploadDate;
+                    currentProj.Project_Status__c = 'Completed'; 
+                } 
+                else{
+                    //If actual error, make inspection record.         
+                    // Write rawRegistryResponse and errorMessage to notes field of autoQaRecord
+                    // automaticQaStatus = Fail, Warn, NotChecked, Pass
+                    system.debug('here');
+                    system.debug(uploadResponse.getStatusCode());
+                    
+                    List<recordtype> recordTypeList = [select name, id from recordtype where name= 'Auto QA' and sobjecttype = 'Inspections__c'];
+                    id recordId = recordTypeList.get(0).id;
+
+                    string year;
+                    year = String.valueOf(datetime.now().year());
+					boolean estar = false;
+
+                    if(currentProj.Energy_Star_v3__c == 'Pass' || currentProj.Energy_Star_v3__c == 'Certified'){
+                        estar = true;
+                    }
+                    Inspections__c inspectionRecord = new Inspections__c(
+                        Project__c = currentProj.id,
+                        Project_Temporary_Name__c = currentProj.Name, 
+                        QA_Year_SERH__c = year,
+                        HERS_Rater_Name_SERH__c = currentProj.HERS_Rater__c,
+                        Status__c = 'Ready for Review',
+                        Energy_STAR__c = estar,
+                        RecordTypeId = recordId,
+                        Date_of_Inspection__c = date.today()
+                    );
+
+                    
+                    inspectionRecord.Building_Registry_Upload_Error__c = TRUE;
+                    inspectionRecord.SERH_Notes_SERH__c = upload.rawRegistryResponse;
+                    
+                    if(upload.automaticQaStatus == 'Fail' || upload.automaticQaStatus == 'NotChecked'){//or upload.automaticQaStatus == 'Warn'
+                        inspectionRecord.Ekotrope_QA_Error__c = TRUE;
+                        //need to add errorMessage to uploadResponseJSON2Apex so 
+                        //we can write those notes to the inspection record
+                    }
+                    currentProj.Project_Status__c = 'On Hold';
+                    //update currentProj;
+                    insert inspectionRecord; 
+                }
+            } else if(uploadResponse.getStatusCode() == 418){
+                currentProj.Project_Status__c = 'In Progress';
+                Log__c errorLog = SERH.constructErrorLog('uploadResponse','uploadResponse', uploadResponse, currentProj.Ekotrope_ID__c, '');
+                errorLogs.add(errorLog);
+            } else{
+                string errorMessage = String.Valueof(currentProj.Ekotrope_ID__c);
+                system.debug('project status code not 418 and not 200');
+                Log__c errorLog = SERH.constructErrorLog('uploadResponse','uploadResponse', uploadResponse, currentProj.Ekotrope_ID__c, '');
+                errorLogs.add(errorLog);
+                System.debug(errorMessage);
+				System.debug(uploadResponse.getStatusCode());                
+            }
+        
+        } 
+        system.debug('SERH_uploadToBuildingRegistry.execute Finish');
+        system.debug(Limits.getCpuTime());
+        update projectsToUpdate;
+        insert errorLogs;
+    }
+    
+    global void finish(Database.BatchableContext bc){
+        system.debug(projectsToUpdate);
+    }
+    
+
+}

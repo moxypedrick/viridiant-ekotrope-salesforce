@@ -1,0 +1,52 @@
+global class ekotropeSchedulable /*was serhSchedulable */implements Schedulable{
+    global void execute(SchedulableContext sc){
+       
+        list<string> codes = new list<string>();
+        codes.add('EnergyStarV3');
+        codes.add('EnergyStarV31');
+    	
+        codes.add('DOEZeroEnergyReady');
+    	//just for mf? codes.add('EnergyStarMFV1');
+        
+        codes.add('DukeNCHEROPerformance');
+        codes.add('DukeNC2018HEROPerformance');
+
+
+        codes.add('TaxCredit45L');
+        codes.add('IECC2015Prescriptive');
+        codes.add('IECC2015Performance');
+        codes.add('NorthCarolina2018HEROPrescriptive');
+        codes.add('DukeRebate2018');
+        codes.add('DukeRebate_8_1_18');
+        codes.add('DukeRebate_1_1_19');
+       
+        codes.add('Virginia2015Performance');
+       
+        codes.add('Virginia2015Prescriptive');
+        codes.add('Virginia2015ERI');
+       
+
+        list<string> statusList = new list<string>();
+        if (Test.isRunningTest()){
+            system.debug('Need to write complicated test code or I can do this');
+        	statusList.add('SUBMITTED_FOR_QA');
+        } else{
+            statusList.add('SUBMITTED_FOR_QA');
+            statusList.add('SUBMITTED_TO_REGISTRY');   
+        }
+
+        ekotropeSync updateNewProjects = new ekotropeSync();
+        //SERH updateNewProjects = new SERH();
+        //updateNewProjects.setAuthorization(authorization);
+        updateNewProjects.setAuthorization();
+        updateNewProjects.setCodesToCheck(codes);
+        updateNewProjects.setVariables(statusList);
+        updateNewProjects.setEnergyDataName('HERS');
+        //will need to make different energy data records
+        // one for HERS data or we put everything HERS (3) plus the three additional records.
+        updateNewProjects.setBuildingRun('EkotropeAsModeled', 'HERSReference', 'HERSRated', 'DOEZeroEnergyReadyTarget','IECC2015_5ACH50Reference','Virginia2015Reference');
+        System.debug('here');
+        Id newProjectBatchId = Database.executeBatch(updateNewProjects,15);
+        
+    }
+}

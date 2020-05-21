@@ -19,20 +19,21 @@ public class serhOnHoldProjects {
             if(con == null) {
                 List<recordtype> recordTypeList = [select name, id from recordtype where name= 'Auto QA' and sobjecttype = 'Inspections__c'];
         		id recordId = recordTypeList.get(0).id;
-                con = new ApexPages.StandardSetController(Database.getQueryLocator([Select name, id, Project_Status__c, Createddate, 
-                                                                                    Hers_Rater__c, hers_rater__r.Name,
-                                                                                    Rating_Field_Inspector__c, Rating_Field_Inspector__r.Name,
-                                                                                    hers_rater__r.number_of_needed_file_qa__c, Ekotrope_Link__c,
-                                                                                    hers_rater__r.Number_of_File_QA_Started__c,
-                                                                                    SERH_Number_of_Units__c, Number_of_Inspections__c,
-                                                                                    Ekotrope_ID__c,
-                                                                                    (select ENERGY_STAR_v3__c, Rating_Type__c, Fee_per_Unit__c, Project_Type__c
-                                                                                     from SERH_Data__r where Export_Type__c = 'HERS'),
-                                                                                    (select Ekotrope_QA_error__c, Building_Registry_Upload_Error__c, mismatched_RTIN__c 
-                                                                                     from Inspections__r)
-                                                                                    from project__c where Project_Status__c = 'On Hold'
-                                                                                    and recordtypeid = '0120B000000t8JVQAY'
-                                                                                    Order By Createddate desc limit 100]));
+                con = new ApexPages.StandardSetController(Database.getQueryLocator([
+                    Select name, id, Project_Status__c, Createddate, 
+                        Hers_Rater__c, hers_rater__r.Name,
+                        Rating_Field_Inspector__c, Rating_Field_Inspector__r.Name,
+                        hers_rater__r.number_of_needed_file_qa__c, Ekotrope_Link__c,
+                        hers_rater__r.Number_of_File_QA_Started__c,
+                        SERH_Number_of_Units__c, Number_of_Inspections__c,
+                        Ekotrope_ID__c,
+                        (select ENERGY_STAR_v3__c, Rating_Type__c, Fee_per_Unit__c, Project_Type__c
+                            from SERH_Data__r where Export_Type__c = 'HERS'),
+                        (select Ekotrope_QA_error__c, Building_Registry_Upload_Error__c, mismatched_RTIN__c 
+                            from Inspections__r)
+                    from project__c where Project_Status__c = 'On Hold'
+                    and recordtypeid = '0120B000000t8JVQAY'
+                    Order By Createddate desc limit 100]));
                 // sets the number of records in each page set
                 con.setPageSize(10);
                 

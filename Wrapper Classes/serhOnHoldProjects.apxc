@@ -13,6 +13,11 @@ public class serhOnHoldProjects {
     public String lastRefresh {get; set;}
     
 
+/**
+    make sure to visualize the status of the RFI
+ */
+
+
     // instantiate the StandardSetController from a query locator
     public ApexPages.StandardSetController con {
         get {

@@ -1,5 +1,7 @@
+//used to be yourHttpUpdaterProj something something
+
 @IsTest
-global class YourHttpUpdaterProj implements HttpCalloutMock{
+global class ekotropeMockHttpProjListCallout implements HttpCalloutMock{
     global HTTPResponse respond(HTTPRequest req){
         //System.assertEquals('https://app.ekotrope.com/api/v1/projects?status=SUBMITTED_FOR_QA', req.getEndpoint());
      //'EkotropeAsModeled', '2015 IECC'

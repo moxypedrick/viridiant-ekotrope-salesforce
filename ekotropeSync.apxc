@@ -14,13 +14,15 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
 
 
     global List<Project__c> ekotropeIdList = new List<Project__c>();
-    global List<SERH_Data__c> serhDataList = new List<SERH_Data__c>();
+    //global List<SERH_Data__c> serhDataList = new List<SERH_Data__c>();
     global List<String> projectIdList = new List<String>();
 	//global HttpResponse projectListResponse = new HttpResponse();
 	global List<Object> newResults = new List<Object>();
     
     global Map<String, String> accountsMap = new Map<String, String>();
     global Map<String, String> existingViridiantProjectsMap = new Map<String, String>();
+    global Map<String, String> existingViridiantMfProjectsMap = new Map<String, String>();
+    global Map<String, String> existingViridiantMFProjectsMapSfID = new Map<String, String>();
     global Map<String, String> serhDataMap = new Map<String, String>();
     global Map<String, String> raterMap = new Map<String, String>();
     private final Map<String, List<String>> globalProjectUpdateStatusList = new Map<String, List<String>>();
@@ -28,13 +30,140 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
     private final List<string> buildingsToCheck = new List<string>();
 
     
+	public static Project__C constructProject(projectJSON2Apex.aProjectJSON2Apex aProject, analysisJson2Apex.pAnalysisJson2Apex bsIsAnalysisResults, String HERSrater, Id RFI, String ratingOrganization, String status, String updateStatus) {
+		//Record constructor methods
+        Date EC_Registration_Date = Date.newInstance(1999, 1, 1);
+        Date Rating_Date = Date.newInstance(1999, 1, 1);
+        projectJSON2Apex.aProjectJSON2Apex qProject = aProject;
+        analysisJson2Apex.pAnalysisJson2Apex qAnalyis = bsIsAnalysisResults;
+
+        integer i = qAnalyis.Compliance.size();
+        integer count = 0;
+        String energyStar = 'Fail';
+
+        while (count < i){
+            List<string> codesToCheck = new List<string>();
+            If (qAnalyis.Compliance[count].code == 'EnergyStarV3'){
+                if(qAnalyis.Compliance[count].complianceStatus == 'Warn'){
+                    energyStar = 'Pass';
+                } else{
+                    energyStar = qAnalyis.Compliance[count].complianceStatus;
+                      }
+
+            }
+            count++;
+        }
+
+
+        if (qProject.hersRatingDetails.ratingDate != null){
+                EC_Registration_Date =  Date.newInstance(
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(0,4)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(5,7)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(8,10)));
+            }else{
+                EC_Registration_Date = null;
+            }
+            if (qProject.hersRatingDetails.fieldRatingDate != null){
+               Rating_Date = Date.newInstance(
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(0,4)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(5,7)),
+                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(8,10)));
+            }else{
+                Rating_Date = null;
+            }
+
+        Project__c projectRecord = new Project__c(
+            /*SERH_Number_of_Units__c = 1,
+            Name = qProject.location.streetAddress.abbreviate(80),
+            Development_Text__c = qProject.community,
+            Builder_SERH__c = qProject.builder,
+            HERS_Rater__c = HERSrater,
+            RemRate_Version__c = 'Ekotrope-' + qProject.algorithmVersion,
+            Rating_Date__c = Rating_Date,
+            Ekotrope_URL__c = 'https://app.ekotrope.com/#project:'+qProject.id,
+            RESNET_Registry_ID__c = qProject.hersRatingDetails.registryId,
+            Ekotrope_ID__c = qProject.id,
+            EC_Registration_Date__c =  EC_Registration_Date,
+            Street_Address__c = qProject.location.streetAddress,
+            City__c = qProject.location.city,
+            State__c = qProject.location.state,
+            Zip_Code__c = qProject.location.zip,
+            RecordTypeId = '0120B000000t8JVQAY',
+            OwnerId = '005U0000000cZ8eIAE', 
+            Ekotrope_selfOrPlanLastSavedAt__c = qProject.selfOrPlanLastSavedAt,
+            Rating_Organization__c = ratingOrganization,
+            Rating_Field_Inspector__c = RFI,
+            Energy_Star_v3__c = energyStar*/
+        );
+
+        /*
+        if (status == 'SUBMITTED_TO_REGISTRY'){
+            projectRecord.Project_Status__c = 'Completed';
+        } else if(status == 'SUBMITTED_FOR_QA' && updateStatus == 'update status'){
+                projectRecord.Project_Status__c = 'In Progress';
+        } else if(status == 'Error'){
+            projectRecord.Project_Status__c = 'On Hold';
+        } else if (status == 'On Hold' && updateStatus == 'update status'){
+            projectRecord.Project_Status__c = 'On Hold';
+        } else if(status == 'In Progress' && updateStatus == 'update status'){
+            projectRecord.Project_Status__c = 'In Progress';
+        }*/
+        
+
+        return projectRecord;
+	}
+  
+    public static Building_Specifications__C constructBuildingSpec(){
+        
+        Building_Specifications__c buildSpecRecord = new Building_Specifications__C(
+        //Project__c = , 
+        //Project_Address = , //this is a formula field from the Project (Project__r.Street_Address__c)
+        //Building_Address_If_not_same_as_proj__c = , 
+        // 
+        );
+        
+        return buildSpecRecord;
+    }
+
+    public static Unit_Takeoff__c constructTakeoffRecord(){
+        Date Registration_Date = Date.newInstance(1999, 1, 1);
+        
+        Unit_Takeoff__c unitTakeoffRecord = new Unit_Takeoff__c(
+            bedrooms__c = 1, 
+            Band_Height__c = 1, 
+            Ceiling_Height__c = 1, 
+            //CFM50__c = 1, //formula
+            //Duct_Leakage_to_the_Outside__c = 1, //formula
+            //Duct_Leakage_Total__c = 1, //formula
+            //ALl the goals are inputs - do I write over those? 
+            Floor_Area__c = 1, 
+            Full_Perimeter__c = 1, 
+            RESNET_Registration_Date__c = Registration_Date,
+            RESNET_Registry_ID__c = '12134091', 
+            //SFBE__c = 1,  //approximate formula. Can we get rid of the formula and write the actual value from ekotrope?
+            Unit_Type__c = 'interior',
+            Name = 'hers-projectname'
+            //Volume__c = 123123  //approximate formula. Can we get rid of the formuala and write actual volume from ekotrope?    
+        );
+        return unitTakeoffRecord;
+    }
+    
+     public static HERS_Data__c constructEnergyDataRecord(){
+        HERS_Data__c hersEnergyRecord = new HERS_Data__c(
+            Name = 'lakdsf', 
+            RESNET_Registry_ID__c = '1312lkj'             
+        );
+        return hersEnergyRecord;
+    }
+
+    
+ /*   
    
     public static Building_Specifications__C constructBuildingSpec(){}
 
     public static HERS_Energy_Data__C constructEnergyDataRecord(){}
 
     public static Unit_Takeoff__c constructTakeoffRecord(){}
-
 
 	public static Project__C constructProject(projectJSON2Apex.aProjectJSON2Apex aProject, analysisJson2Apex.pAnalysisJson2Apex bsIsAnalysisResults, String HERSrater, Id RFI, String ratingOrganization, String status, String updateStatus) {
 		//Record constructor methods
@@ -439,17 +568,7 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
 
 	}
     
-    public static Log__c constructErrorLog(String nameString, String apexClass, HttpResponse newHTTP, String projectId, String descriptionLong){
-        Log__c errorLog = new Log__c(
-            Name = nameString,
-            Status_Code__c = newHTTP.getStatusCode(),
-            Class_Name__c = apexClass,
-            Record_Id__c = projectId,
-            Description__c = newHTTP.getStatus(),
-            Description_long__c = descriptionLong
-        );
-        return errorLog;
-    }
+   
     
     public static string setProjectStatus(projectJSON2Apex.aProjectJSON2Apex bProject, planJson2Apex.aPlanJson2Apex rplan, String updateStatus, String initialStatus){
         //Set project status, assigns the appropriate status dependent on
@@ -627,19 +746,24 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         }
     }
 
-    public static HttpResponse getProjectList(String authorization, String statusType){
-        /*Get list of projects from ekotrope that have stage: statusType
-            -statusType options are: Registered with Resnet, Submitted for QA, Shared with Provider, unregistered
-            -This queries ekotrope for a project list
-            -If no response or api call errors it returns a httpResponse with an error code to be processed later
-        */
+
+
+    */
+   
+        public static HttpResponse getProjectList(String authorization, String statusType){
+        //Get list of projects from ekotrope that have stage: statusType
+        //    -statusType options are: Registered with Resnet, Submitted for QA, Shared with Provider, unregistered
+        //    -This queries ekotrope for a project list
+        //    -If no response or api call errors it returns a httpResponse with an error code to be processed later
+        //
+        
         if(test.isRunningTest()){
-                    Test.setMock(HttpCalloutMock.class, new YourHttpUpdaterProj());
+                    Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpProjListCallout());
                 }
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         HttpResponse response;
-        request.setEndpoint('https://app.ekotrope.com/api/v1/projects?status='+statusType);//SUBMITTED_TO_REGISTRY');
+        request.setEndpoint('https://api.ekotrope.com/api/v1/projects?status='+statusType);//SUBMITTED_TO_REGISTRY');
         request.setMethod('GET');
         request.setHeader('authorization', authorization);
         request.setTimeout(60000);
@@ -660,15 +784,42 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         return response;
    	}
  
-//public static HttpResponse getProjectListWithDate(String authorization, String statusType, String createdAfter, String createdBefore){
-// request.setEndpoint('https://app.ekotrope.com/api/v1/projects?status='+statusType+'&created_after='+createdAfter+'&created_before='+createdBefore);
-      
+
+	public static HttpResponse getProjectListWithDate(String authorization, String statusType, String createdAfter, String createdBefore){
+        
+        if(test.isRunningTest()){
+                    Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpProjListCallout());
+                }
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        HttpResponse response;
+        request.setEndpoint('https://api.ekotrope.com/api/v1/projects?status='+statusType+'&created_after='+createdAfter+'&created_before='+createdBefore);
+        request.setMethod('GET');
+        request.setHeader('authorization', authorization);
+        request.setTimeout(60000);
+        try {
+			system.debug('trying to get response from get project list');
+            response = http.send(request);
+            } 
+        catch(Exception e) {
+            system.debug('getProjectList except');
+            system.debug(e.getMessage());
+            response = new HttpResponse();
+            response.setStatus(e.getMessage());
+            response.setStatusCode(418);
+            response.setBody('{}');
+            system.debug(response);
+        }
+        
+        return response;
+    }
+
     public static HttpResponse getProject(String authorization, String ekotropeId){
         String project = ekotropeId;
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         HttpResponse projectResponse;
-		request.setEndpoint('https://app.ekotrope.com/api/v1/projects/'+project);
+		request.setEndpoint('https://api.ekotrope.com/api/v1/projects/'+project);
 		request.setMethod('GET');
 		request.setHeader('authorization', authorization);
 		
@@ -694,7 +845,7 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         HttpResponse planResponse;
-		request.setEndpoint('https://app.ekotrope.com/api/v1/houseplans/' + planID);
+		request.setEndpoint('https://api.ekotrope.com/api/v1/houseplans/' + planID);
 		request.setMethod('GET');
         request.setHeader('authorization', authorization);
         try{
@@ -719,13 +870,13 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         for(String i : codesToCheck){
             codesString = codesString +'&codesToCheck=' + i;
         }
-
+		system.debug(codesString);
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         HttpResponse planAnalysisResponse;
-        request.setEndpoint('https://app.ekotrope.com/api/v1/planAnalysis/'+planID+'?buildingType='+ buildingType + codesString);
+        request.setEndpoint('https://api.ekotrope.com/api/v1/planAnalysis/'+planID+'?buildingType='+ buildingType + codesString);
 		request.setMethod('GET');
-		request.setHeader('authorization', 'Basic c291dGhmYWNlLWFwaTp3WUZVQ0w1eg==');
+		request.setHeader('authorization', authorization);
 		
         try{
             planAnalysisResponse = http.send(request);
@@ -742,7 +893,8 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         return planAnalysisResponse;
 
     }
-
+   
+/*
     public static HttpResponse putToBuildingRegistry(String authorization, String ekotropeId){
         //make this a method which returns a Map<String, String>
         //This method should take an authorization and a list of project ids or ekotrope ids
@@ -776,6 +928,20 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         return putResponse;
     }
 
+*/
+    
+     public static Log__c constructErrorLog(String nameString, String apexClass, HttpResponse newHTTP, String projectId, String descriptionLong){
+        Log__c errorLog = new Log__c(
+            Name = nameString,
+            Status_Code__c = string.valueOf(newHTTP.getStatusCode()),
+            Class_Name__c = apexClass,
+            Record_Id__c = projectId,
+            Description__c = newHTTP.getStatus()
+            //Description_long__c = descriptionLong
+        );
+        return errorLog;
+    }
+    
     global void setVariables(list<string> stage){
         //This sets which Ekotrope Status this code queries from the Project List API
     	//The options are: "SUBMITTED_FOR_QA", "SUBMITTED_TO_REGISTRY", "UNREGISTERED",
@@ -796,11 +962,11 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
     	//should be set to FALSE.
         //Authorization = auth;
         
-        Account credentials = [Select id, Ekotrope_Password__c, Ekotrope_Username__c from Account WHERE Name = 'Southface'];
-        system.debug(credentials.Ekotrope_Password__c);
+        Account credentials = [Select id from Account WHERE Name = 'Southface'];//, Ekotrope_Password__c, Ekotrope_Username__c
+        //system.debug(credentials.Ekotrope_Password__c);
         
-        String username = credentials.Ekotrope_Username__c;
-        String password = credentials.Ekotrope_Password__c;
+        String username = 'placeholder';//credentials.Ekotrope_Username__c;
+        String password = 'placeholder';//credentials.Ekotrope_Password__c;
         Blob headerValue = Blob.valueOf(username + ':' + password);
         authorization = ('Basic ' + EncodingUtil.base64Encode(headerValue));  
         
@@ -836,33 +1002,107 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
     	//HERS, 2012 IECC, 2009 IECC
         dataPrefix = prefix;
         //System.Debug('Set prefix to '+prefix);
+    }  
+    
+    global Iterable<String> start(Database.BatchableContext bc){
+        List<Log__c> errorLogs = new List<Log__c>();
+        
+        //Get Unit_takeoffs that have an Ekotrope_ID. These should be all of the energy models
+        //with existing connection to ekotrope because the Ekotrope_ID__c is filled in. 
+        //On MF projects, this field is empty because viridiant puts in id on Ekotrope Model ID field
+        //We will however, fill in this field on the MF-Shadow records which are treated the same as 
+        //SF projects  - just like SERH
+        //
+        //
+        //THis gets SF and MF-Shadow
+        for(Unit_Takeoff__c existingProject : [Select Ekotrope_ID__c, Ekotrope_selfOrPlanLastSavedAt__c, ID, Name   
+                                            	FROM Unit_Takeoff__c
+                                           		WHERE Ekotrope_ID__c != null]) //and RecordTypeId='??????????????????'
+        {existingViridiantProjectsMap.put(existingProject.Ekotrope_ID__c, existingProject.Ekotrope_selfOrPlanLastSavedAt__c);}
+    
+        for(string ekoStage : ekotropeStages){
+            if(test.isRunningTest()){Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpProjListCallout());}  
+            HttpResponse projectListResponse = ekotropeSync.getProjectList(authorization, ekoStage);        
+            if(projectListResponse.getStatusCode() == 200){
+                String newProjectList = String.valueOf(projectListResponse.getBody());
+                if(projectListResponse.getBody() != ''){
+                    newResults = (List<Object>)JSON.deserializeUntyped(newProjectList);
+                    //iterate over the projects in Ekotrope 
+                   
+                    for(Object project : newResults){
+                        Map<String, Object> projectData = (Map<String, Object>)project;
+                        List<String> updateStatusList = new List<String>();
+                        //Check to see if the project exists in existing Viridiant projects map (sf and mf-shadow) 
+                        if(existingViridiantProjectsMap.get(String.valueOf(projectData.get('id')))==null){
+                            //ekotrope id does not exist in salesforce. so we add it to the add list
+                            //we do not know if it is sf or mf. We add the mf projects to the shadow data structure
+                            
+                            projectIdList.add(String.valueOf(projectData.get('id')));    
+                        } //If the id exists, then we check to see if it has changed
+                        else {
+                            if(projectData.get('selfOrPlanLastSavedAt') != existingViridiantProjectsMap.get(String.valueOf(projectData.get('id')))){
+                               projectIdList.add(String.valueOf(projectData.get('id'))); 
+                            }
+                        }
+                        
+                    }
+                } else{
+                    system.debug('getProjectList returned a blank body');
+                    if(!Test.isRunningTest()){
+                        Log__c errorLog =  constructErrorLog('getProjectList', 'getProjectList', projectListResponse, ekoStage, projectListResponse.getBody());
+                    	errorLogs.add(errorLog);
+                    }
+                }
+            } else{
+                if(!Test.isRunningTest()){
+                    Log__c errorLog = constructErrorLog('getProjectList','getProjectList', projectListResponse, ekoStage, projectListResponse.getBody());
+                    errorLogs.add(errorLog);
+                return projectIdList; 
+                }
+            }
+        }
+ 
+        
+        //I've gotten all of the new models and or models that need to be updated
+        //next lets figure out what to do with them
+        // We pass the ekoIds to execute. In execute the first thing that
+        // happens is matching (after we determine MF, SF)
+        
+        
+        insert errorLogs;
+        return projectIdList;
     }
 
+    global void execute(Database.BatchableContext bc, List<String> projectsToUpdate){}
+    global void finish(Database.BatchableContext bc){}
+    
+    /*   
     global Iterable<String> start(Database.BatchableContext bc){
-        /* Get list of all existing projects in salesforce and then get all projects from ekotrope
-            Compare the two lists and determine which projects do not exist in salesforce and which 
-            projects need to be updated in salesforce. 
+        // Get list of all existing projects in salesforce and then get all projects from ekotrope
+        //    Compare the two lists and determine which projects do not exist in salesforce and which 
+        //    projects need to be updated in salesforce. 
 
-            This method creates an iterable (list named projectIdList) which is passed to the execute 
-            method which iterates over list and completes the rest of the function on batches of the list. 
+        //    This method creates an iterable (list named projectIdList) which is passed to the execute 
+        //    method which iterates over list and completes the rest of the function on batches of the list. 
 
-            This method also creates a Map (globalProjectUpdateStatusMap) that stores the project id 
-            and update status for each project in the projectIdList. 
+       //     This method also creates a Map (globalProjectUpdateStatusMap) that stores the project id 
+       //     and update status for each project in the projectIdList. 
 
-            Change: 
-                Will need query ECMF project records to get the Ekotrope IDs of existing projects. These
-                projects will be upserted as needed. Give them a special status in the 
-                globalProjectUpdateStatusMap to indicate template projects. 
-         */
+       //     Change: 
+       ///         Will need query ECMF project records to get the Ekotrope IDs of existing projects. These
+       //         projects will be upserted as necessary. Give them a special status in the 
+        //        globalProjectUpdateStatusMap to indicate template projects. 
+         //
 
-        List<Log__c> errorLogs = new List<Log__c>();
+        
+        
         system.debug('ekotropeSync.start Start: '+ Limits.getCpuTime());
 
-        /*
-        Change:
-            -Project__c --> HERS Data Field
-            -RecordTypeId --> to new id
-         */
+        //
+        //Change:
+        //    -Project__c --> HERS Data Field
+       //     -RecordTypeId --> to new id
+         //
         for(Project__c existingProject : [Select Ekotrope_ID__c, Ekotrope_selfOrPlanLastSavedAt__c
                                             FROM Project__c
                                             WHERE Ekotrope_ID__c != null and RecordTypeId='0120B000000t8JVQAY'])
@@ -878,13 +1118,13 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
             
             HttpResponse projectListResponse = ekotropeSync.getProjectList(authorization, ekoStage);
    
-           /* Check to see if the projectListResponse was successful (status code 200)
-                -If it was successful: 
-                    -determine which projects do not exist in salesforce
-                    -label these projects with the appropriate labels to indicate next action (update, group, etc)
-                -Else: 
-                    -Create an error log reporting this failure
-           */  
+           // Check to see if the projectListResponse was successful (status code 200)
+           //     -If it was successful: 
+           //         -determine which projects do not exist in salesforce
+           //         -label these projects with the appropriate labels to indicate next action (update, group, etc)
+           //     -Else: 
+           //         -Create an error log reporting this failure
+           //  
             if(projectListResponse.getStatusCode() == 200){
                 String newProjectList = String.valueOf(projectListResponse.getBody());    
                 if(projectListResponse.getBody() != ''){
@@ -893,10 +1133,10 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
                     for(Object project : newResults){
                         Map<String,Object> projectData = (Map<String,Object>)project;
                         List <String> updateSatusList = new List<String>();
-                        /* Check to see if the projects from ekotrope exist in salesforce
-                            -If it doesn't( projectData.get('id')==null) add the id to projectIdList which will create the project in salesforce
-                            -If it does, check to see if it ekotrope model has been changed recently and update accordingly 
-                        */
+                        // Check to see if the projects from ekotrope exist in salesforce
+                        //    -If it doesn't( projectData.get('id')==null) add the id to projectIdList which will create the project in salesforce
+                         //   -If it does, check to see if it ekotrope model has been changed recently and update accordingly 
+                        //
                         if (existingViridiantProjectsMap.get(String.valueOf(projectData.get('id'))) == null) {
                             projectIdList.add(String.valueOf(projectData.get('id')));
                             updateSatusList.add('update status');
@@ -931,16 +1171,16 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
     }
 
     global void execute(Database.BatchableContext bc, List<String> projectsToUpdate){   
-        /*
-            Lots of work to be done here! 
+        //
+        //    Lots of work to be done here! 
 
-            Will need to build separate lists of projects to process based on the following: 
-                - single family and multi-family
-                - EarthCraft
-                - Existing projects in salesforce
-                - other programs??
+       //     Will need to build separate lists of projects to process based on the following: 
+    //            - single family and multi-family
+    //            - EarthCraft
+     //           - Existing projects in salesforce
+      //          - other programs??
         
-         */
+         
 
         system.debug('ekotropeSync.execute Start: '+Limits.getCpuTime());
         
@@ -953,13 +1193,13 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         String project_status = null;
 
 
-        /*  
-            Get all raters in Viridiant and their RESNET ID Number. This is to get correct File and Field QA
-            counts and to add correct contact information to each project
+        // 
+//            Get all raters in Viridiant and their RESNET ID Number. This is to get correct File and Field QA
+  //          counts and to add correct contact information to each project
 
-            Change: 
-                -This will query the Contact and not the Qualifications record         
-        */
+    //        Change: 
+      //          -This will query the Contact and not the Qualifications record         
+        //
 
         for(Qualifications_del__c existingContact : [
             Select Qualifications_for__c,
@@ -974,18 +1214,18 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         for(Account existingAccounts : [Select Ekotrope_ID__c, Id FROM Account WHERE Ekotrope_ID__c != ''])
         {accountsMap.put(existingAccounts.Ekotrope_ID__c, existingAccounts.Id);}
 
-        /*
-            Iterate thru all projects in projectsToUpdate list. For each project determine what needs to be done
-            Options: 
-                - Ekotrope ID is in salesforce --> update project
-                - Ekotrope ID is not in salesforce: 
-                    - SF: 
-                        -Try to find it based on match algorithm:
-                            - IF we can find it then suggest match
-                            - If we can't find it: then create new project  
-                    - MF: 
-                        - 
-        */
+        //
+//            Iterate thru all projects in projectsToUpdate list. For each project determine what needs to be done
+  //          Options: 
+    //            - Ekotrope ID is in salesforce --> update project
+      //          - Ekotrope ID is not in salesforce: 
+        //            - SF: 
+          //              -Try to find it based on match algorithm:
+            //                - IF we can find it then suggest match
+              //              - If we can't find it: then create new project  
+                //    - MF: 
+                  //      - 
+        //
         //check to see if any should not be auto-processed
         for(String projectId:projectsToUpdate){
             system.debug('ekotropeSync.execute - Iterating through all projects that need updating in this batch');
@@ -1006,15 +1246,7 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
                 system.debug('Project has status code 418: '+projectId);
                 system.debug(projectResponse.getBody());
                 Log__c errorLog = constructErrorLog('getProject','getProject', projectResponse, projectId, projectResponse.getBody());
-                /*   
-                Log__c errorLog = new Log__c(
-                    Name = 'getProject',
-                    Status_Code__c = projectResponse.getStatusCode(),
-                    Class_Name__c = 'getProject',
-                    Record_Id__c = projectId,
-                    Description__c = projectResponse.getStatus(),
-                    Description_long__c = 'getProject API call to Ekotrope was unsuccessful'
-                );*/
+                
                 errorLogs.add(errorLog);
             }
             else if(projectResponse.getStatusCode() == 200){
@@ -1102,53 +1334,23 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
                     if(planResponse.getStatusCode() != 200){
                         Log__c errorLog = constructErrorLog('getHousePlan','getHousePlan', planResponse, projectId, planResponse.getBody());
                 
-                        /*Log__c errorLog = new Log__c(
-                            Name = 'getHousePlan',
-                            Status_Code__c = planResponse.getStatusCode(),
-                            Class_Name__c = 'getHousePlan',
-                            Record_Id__c = projectId,
-                            Description__c = planResponse.getStatus(),
-                            Description_long__c = 'getHousePlan API call to Ekotrope was unsuccessful'
-                        );*/
                         errorLogs.add(errorLog);
                     } 
                     if(analysisResponse.getStatusCode() != 200){
                         Log__c errorLog = constructErrorLog('getHousePlanAnalysis - EkotropeAsModeled','getHousePlanAnalysis', analysisResponse, projectId, analysisResponse.getBody());
-                    /*   Log__c errorLog = new Log__c(
-                            Name = 'getHousePlanAnalysis - EkotropeAsModeled',
-                            Status_Code__c = planResponse.getStatusCode(),
-                            Class_Name__c = 'getHousePlanAnalysis',
-                            Record_Id__c = projectId,
-                            Description__c = planResponse.getStatus(),
-                            Description_long__c = 'getHousePlanAnalysis - EkotropeAsModeled API call to Ekotrope was unsuccessful'
-                        );*/
+                   
                         errorLogs.add(errorLog);
                         
                     } 
                     if(ReferenceAnalysisResponse.getStatusCode() != 200){
                         Log__c errorLog = constructErrorLog('getHousePlanAnalysis - HERSReference','getHousePlanAnalysis', ReferenceAnalysisResponse, projectId, ReferenceAnalysisResponse.getBody());
     
-                        /*Log__c errorLog = new Log__c(
-                            Name = 'getHousePlanAnalysis - HERSReference',
-                            Status_Code__c = planResponse.getStatusCode(),
-                            Class_Name__c = 'getHousePlanAnalysis',
-                            Record_Id__c = projectId,
-                            Description__c = planResponse.getStatus(),
-                            Description_long__c = 'getHousePlanAnalysis - HERSReference API call to Ekotrope was unsuccessful'
-                        );*/
+                       
                         errorLogs.add(errorLog);
                     } 
                     if(DesignanalysisResponse.getStatusCode() != 200){
                         Log__c errorLog = constructErrorLog('getHousePlanAnalysis - HERSRated','getHousePlanAnalysis', DesignanalysisResponse, projectId, DesignanalysisResponse.getBody());
-            /*
-                        Log__c errorLog = new Log__c(
-                            Name = 'getHousePlanAnalysis - HERSRated',
-                            Status_Code__c = planResponse.getStatusCode(),
-                            Class_Name__c = 'getHousePlanAnalysis',
-                            Record_Id__c = projectId,
-                            Description__c = planResponse.getStatus(),
-                            Description_long__c = 'getHousePlanAnalysis - HERSRated API call to Ekotrope was unsuccessful'
-                        );*/
+            
                         errorLogs.add(errorLog);
                     }
                 } 
@@ -1156,14 +1358,7 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
             else{
                 Log__c errorLog = constructErrorLog('getProject','getProject', projectResponse, projectId, projectResponse.getBody());
 
-            /* Log__c errorLog = new Log__c(
-                    Name = 'getProject',
-                    Status_Code__c = projectResponse.getStatusCode(),
-                    Class_Name__c = 'getProject',
-                    Record_Id__c = projectId,
-                    Description__c = projectResponse.getStatus(),
-                    Description_long__c = projectResponse.getBody()
-                );*/
+            
                 errorLogs.add(errorLog);
                 system.debug(projectId);
                 system.debug(projectResponse.getBody());
@@ -1278,4 +1473,6 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         }
         existingViridiantProjectsMap.clear();
     }
+*/
+
 }

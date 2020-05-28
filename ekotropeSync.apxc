@@ -20,12 +20,18 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
 	global List<Object> newResults = new List<Object>();
     
     global Map<String, String> accountsMap = new Map<String, String>();
+    global Map<String, String> raterMap = new Map<String, String>();
+    
     global Map<String, String> existingViridiantProjectsMap = new Map<String, String>();
     global Map<String, String> existingViridiantMfProjectsMap = new Map<String, String>();
     global Map<String, String> existingViridiantMFProjectsMapSfID = new Map<String, String>();
+    
+    private final Map<String, String> globalProjectUpdateStatusList = new Map<String, String>();
+    
+    
     global Map<String, String> serhDataMap = new Map<String, String>();
-    global Map<String, String> raterMap = new Map<String, String>();
-    private final Map<String, List<String>> globalProjectUpdateStatusList = new Map<String, List<String>>();
+    
+    
     private final List<string> codesToCheck = new List<string>();
     private final List<string> buildingsToCheck = new List<string>();
 
@@ -148,105 +154,256 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         return unitTakeoffRecord;
     }
     
-     public static HERS_Data__c constructEnergyDataRecord(){
+    public static HERS_Data__c constructEnergyDataRecord(){
         HERS_Data__c hersEnergyRecord = new HERS_Data__c(
             Name = 'lakdsf', 
             RESNET_Registry_ID__c = '1312lkj'             
         );
         return hersEnergyRecord;
     }
-
-    
- /*   
    
-    public static Building_Specifications__C constructBuildingSpec(){}
-
-    public static HERS_Energy_Data__C constructEnergyDataRecord(){}
-
-    public static Unit_Takeoff__c constructTakeoffRecord(){}
-
-	public static Project__C constructProject(projectJSON2Apex.aProjectJSON2Apex aProject, analysisJson2Apex.pAnalysisJson2Apex bsIsAnalysisResults, String HERSrater, Id RFI, String ratingOrganization, String status, String updateStatus) {
-		//Record constructor methods
-        Date EC_Registration_Date = Date.newInstance(1999, 1, 1);
-        Date Rating_Date = Date.newInstance(1999, 1, 1);
-        projectJSON2Apex.aProjectJSON2Apex qProject = aProject;
-        analysisJson2Apex.pAnalysisJson2Apex qAnalyis = bsIsAnalysisResults;
-
-        integer i = qAnalyis.Compliance.size();
-        integer count = 0;
-        String energyStar = 'Fail';
-
-        while (count < i){
-            List<string> codesToCheck = new List<string>();
-            If (qAnalyis.Compliance[count].code == 'EnergyStarV3'){
-                if(qAnalyis.Compliance[count].complianceStatus == 'Warn'){
-                    energyStar = 'Pass';
-                } else{
-                    energyStar = qAnalyis.Compliance[count].complianceStatus;
-                      }
-
-            }
-            count++;
+    public static Inspection__c constructInspectionRecord(ID unitTakeoffId) {
+        Unit_Takeoff__c unitTakeoffRecord;
+        unitTakeoffRecord = [SELECT Name, RESNET_Registration_Date__c FROM Unit_Takeoff__c WHERE ID = :unitTakeoffId];
+        //projectRecord.Project_Status__c = 'Pending Review';
+        //update unitTakeoffRecord;
+        string year;
+        if(unitTakeoffRecord.RESNET_Registration_Date__c != null){
+            year = String.valueOf(unitTakeoffRecord.RESNET_Registration_Date__c.year()); //
+        } else {
+            year = String.valueOf(datetime.now().year());
         }
 
+        boolean estar = false;
 
-        if (qProject.hersRatingDetails.ratingDate != null){
-                EC_Registration_Date =  Date.newInstance(
-                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(0,4)),
-                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(5,7)),
-                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.ratingDate).substring(8,10)));
-            }else{
-                EC_Registration_Date = null;
-            }
-            if (qProject.hersRatingDetails.fieldRatingDate != null){
-               Rating_Date = Date.newInstance(
-                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(0,4)),
-                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(5,7)),
-                    Integer.valueOf(String.valueOf(qProject.hersRatingDetails.fieldRatingDate).substring(8,10)));
-            }else{
-                Rating_Date = null;
-            }
-
-        Project__c projectRecord = new Project__c(
-            SERH_Number_of_Units__c = 1,
-            Name = qProject.location.streetAddress.abbreviate(80),
-            Development_Text__c = qProject.community,
-            Builder_SERH__c = qProject.builder,
-            HERS_Rater__c = HERSrater,
-            RemRate_Version__c = 'Ekotrope-' + qProject.algorithmVersion,
-            Rating_Date__c = Rating_Date,
-            Ekotrope_URL__c = 'https://app.ekotrope.com/#project:'+qProject.id,
-            RESNET_Registry_ID__c = qProject.hersRatingDetails.registryId,
-            Ekotrope_ID__c = qProject.id,
-            EC_Registration_Date__c =  EC_Registration_Date,
-            Street_Address__c = qProject.location.streetAddress,
-            City__c = qProject.location.city,
-            State__c = qProject.location.state,
-            Zip_Code__c = qProject.location.zip,
-            RecordTypeId = '0120B000000t8JVQAY',
-            OwnerId = '005U0000000cZ8eIAE', 
-            Ekotrope_selfOrPlanLastSavedAt__c = qProject.selfOrPlanLastSavedAt,
-            Rating_Organization__c = ratingOrganization,
-            Rating_Field_Inspector__c = RFI,
-            Energy_Star_v3__c = energyStar
+        Inspection__c inspectionRecord = new Inspection__c(
+            //Project__c = projectID,
+            //Project_Temporary_Name__c = projectRecord.Name,
+            //QA_Year_SERH__c = year,
+            //HERS_Rater_Name_SERH__c = projectRecord.HERS_Rater__c,
+            //Status__c = 'New',
+            //Energy_STAR__c = estar,
+            //RecordTypeId = '0120B0000005kLZQAY'
+            //Name = 'asdf'
         );
 
-        if (status == 'SUBMITTED_TO_REGISTRY'){
-            projectRecord.Project_Status__c = 'Completed';
-        } else if(status == 'SUBMITTED_FOR_QA' && updateStatus == 'update status'){
-                projectRecord.Project_Status__c = 'In Progress';
-        } else if(status == 'Error'){
-            projectRecord.Project_Status__c = 'On Hold';
-        } else if (status == 'On Hold' && updateStatus == 'update status'){
-            projectRecord.Project_Status__c = 'On Hold';
-        } else if(status == 'In Progress' && updateStatus == 'update status'){
-            projectRecord.Project_Status__c = 'In Progress';
-        }
-        //projectRecord.SERH_Number_of_Units__c = 1;
-
-        return projectRecord;
+        return inspectionRecord;
 	}
-
+    
+    public Map<string, list<string>> match(List<Project__c> addProjects, Map<String, String> existingProjects){
+        //addProjects is a list projects (new from ekotrope) to be matched with existing SF records
+        //
+        //existingProjects is a list of SF records. Key is project id and value is levenshtein value
+        //
+        //
+        //function takes a list of ekotrope projects (at this point they are either unit takeoffs
+        //or full on projects, building, etc (and later we merge the records)). It also takes a map
+        //of all of the existing projects that we look for matches in. The function
+        //returns a map of likely matches. 
+        //
+        //
+        //   
+             
+        map<string, list<string>> matchString = new map<string, list<string>>();
+        
+        Set<string> existingProjectsSet = existingProjects.keySet();              
+        for(string lechValue:existingProjectsSet){
+            for(Project__c project:addProjects){
+                //make lechValue for project, determine which ones are close
+                string name = project.name;
+                string street = project.street_address__c;
+                string city = project.city__c;
+                string state = project.state__c;
+                string lechString = normalizeLechString(name, street, city, state);  
+                Integer similarity = lechString.getLevenshteinDistance(existingProjects.get(lechValue));                
+                double ratio1 = ((double) similarity) / (Math.max(lechString.length(), existingProjects.get(lechValue).length()));
+				// if levenshtein ratio is sufficiently high add this existing project to a map of potential matches
+                if(ratio1 < 0.4){
+                    matchString.get(project.id).add(lechValue);
+                }                 
+            }
+        }
+        return matchString;
+    }
+    
+    public string normalizeLechString(String projName, String street, String city, String state){//,String City, String State, String zipCode
+        //project name - first token
+        //street - second token
+        //city - third
+        //state - fourth
+        //zipcode - fifth
+        Map<String, String> stopWords = new Map<String, String>{'xing '=>'crossing','wy'=>'way','wls'=>'wells','wells'=>'wells',
+            'well'=>'well','ways'=>'ways','way'=>'way','wall'=>'wall','walks'=>'walks','walk'=>'walk','vws'=>'views','vw'=>'view',
+            'vsta'=>'vista','vst'=>'vista','vlys'=>'valleys','vly'=>'valley','vlly'=>'valley','vlgs'=>'villages','vlg'=>'village',
+            'vl'=>'ville','vista'=>'vista','vist'=>'vista','vis'=>'vista','villiage'=>'village','villg'=>'village','ville'=>'ville',
+            'villages'=>'villages','village'=>'village','villag'=>'village','vill'=>'village','views'=>'views','view'=>'view',
+            'viaduct'=>'viaduct','viadct'=>'viaduct','via'=>'viaduct','vdct'=>'viaduct','vally'=>'valley','valleys'=>'valleys',
+            'valley'=>'valley','unions'=>'unions','union'=>'union','underpass'=>'underpass','un'=>'union','turnpk'=>'turnpike',
+            'turnpike'=>'turnpike','tunnl'=>'tunnel','tunnels'=>'tunnel','tunnel'=>'tunnel','tunls'=>'tunnel','tunl'=>'tunnel',
+            'tunel'=>'tunnel','trnpk'=>'turnpike','trls'=>'trail','trlrs'=>'trailer','trlr'=>'trailer','trl'=>'trail',
+            'trks'=>'track','trk'=>'track','trce'=>'trace','trak'=>'track','trails'=>'trail','trailer'=>'trailer','trail'=>'trail',
+            'trafficway'=>'trafficway','tracks'=>'track','track'=>'track','traces'=>'trace','trace'=>'trace',
+            'throughway'=>'throughway','terrace'=>'terrace','terr'=>'terrace','ter'=>'terrace','summit'=>'summit',
+            'sumitt'=>'summit','sumit'=>'summit','strvnue'=>'stravenue','strvn'=>'stravenue','strt'=>'street','strm'=>'stream',
+            'streme'=>'stream','streets'=>'streets','street'=>'street','stream'=>'stream','stravn'=>'stravenue',
+            'stravenue'=>'stravenue','straven'=>'stravenue','strav'=>'stravenue','stra'=>'stravenue','str'=>'street',
+            'stn'=>'station','statn'=>'station','station'=>'station','sta'=>'station','st'=>'street','squares'=>'squares',
+            'square'=>'square','squ'=>'square','sqrs'=>'squares','sqre'=>'square','sqr'=>'square','sq'=>'square','spurs'=>'spurs',
+            'spur'=>'spur','sprngs'=>'springs','sprng'=>'spring','springs'=>'springs','spring'=>'spring','spngs'=>'springs',
+            'spng'=>'spring','spgs'=>'springs','spg'=>'spring','smt'=>'summit','skyway'=>'skyway','shrs'=>'shores','shr'=>'shore',
+            'shores'=>'shores','shore'=>'shore','shoars'=>'shores','shoar'=>'shore','shoals'=>'shoals','shoal'=>'shoal',
+            'shls'=>'shoals','shl'=>'shoal','rvr'=>'river','run'=>'run','rue'=>'rue','rst'=>'rest','rpds'=>'rapids','rpd'=>'rapid',
+            'row'=>'row','route'=>'route','roads'=>'roads','road'=>'road','rnchs'=>'ranch','rnch'=>'ranch','rivr'=>'river',
+            'river'=>'river','riv'=>'river','ridges'=>'ridges','ridge'=>'ridge','rest'=>'rest','rds'=>'roads','rdgs'=>'ridges',
+            'rdge'=>'ridge','rdg'=>'ridge','rd'=>'road','rapids'=>'rapids','rapid'=>'rapid','ranches'=>'ranch','ranch'=>'ranch',
+            'ramp'=>'ramp','radl'=>'radial','radiel'=>'radial','radial'=>'radial','rad'=>'radial','pts'=>'points','pt'=>'point',
+            'prts'=>'ports','prt'=>'port','prr'=>'prairie','prk'=>'park','prairie'=>'prairie','pr'=>'prairie','ports'=>'ports',
+            'port'=>'port','points'=>'points','point'=>'point','pnes'=>'pines','plza'=>'plaza','plz'=>'plaza','plns'=>'plains',
+            'pln'=>'plain','plaza'=>'plaza','plains'=>'plains','plain'=>'plain','pl'=>'place','pky'=>'parkway','pkwys'=>'parkways',
+            'pkwy'=>'parkway','pkway'=>'parkway','pines'=>'pines','pine'=>'pine','pikes'=>'pike','pike'=>'pike','paths'=>'path',
+            'path'=>'path','passage'=>'passage','pass'=>'pass','parkwy'=>'parkway','parkways'=>'parkways','parkway'=>'parkway',
+            'parks'=>'parks','park'=>'park','ovl'=>'oval','overpass'=>'overpass','oval'=>'oval','orchrd'=>'orchard','orchard'=>
+            'orchard','orch'=>'orchard','neck'=>'neck','nck'=>'neck','mtn'=>'mountain','mtin'=>'mountain','mt'=>'mount',
+            'mssn'=>'mission','mountin'=>'mountain','mountains'=>'mountains','mountain'=>'mountain','mount'=>'mount',
+            'motorway'=>'motorway','mntns'=>'mountains','mntn'=>'mountain','mntain'=>'mountain','mnt'=>'mount','mnrs'=>'manors',
+            'mnr'=>'manor','missn'=>'mission','mills'=>'mills','mill'=>'mill','mews'=>'mews','medows'=>'meadows','meadows'=>'meadows',
+            'meadow'=>'meadow','mdws'=>'meadows','mdw'=>'meadows','manors'=>'manors','manor'=>'manor','mall'=>'mall','loops'=>'loop',
+            'loop'=>'loop','lodge'=>'lodge','lodg'=>'lodge','locks'=>'locks','lock'=>'lock','loaf'=>'loaf','lndng'=>'landing',
+            'lndg'=>'landing','ln'=>'lane','lks'=>'lakes','lk'=>'lake','lights'=>'lights','light'=>'light','lgt'=>'light',
+            'lf'=>'loaf','ldge'=>'lodge','ldg'=>'lodge','lcks'=>'locks','lck'=>'lock','lane'=>'lane','landing'=>'landing',
+            'land'=>'land','lakes'=>'lakes','lake'=>'lake','kys'=>'keys','ky'=>'key','knolls'=>'knolls','knoll'=>'knoll',
+            'knol'=>'knoll','knls'=>'knolls','knl'=>'knoll','keys'=>'keys','key'=>'key','juncton'=>'junction','junctn'=>'junction',
+            'junctions'=>'junctions','junction'=>'junction','jcts'=>'junctions','jctns'=>'junctions','jctn'=>'junction',
+            'jction'=>'junction','jct'=>'junction','iss'=>'islands','islnds'=>'islands','islnd'=>'island','isles'=>'isle',
+            'isle'=>'isle','islands'=>'islands','island'=>'island','is'=>'island','inlt'=>'inlet','hwy'=>'highway','hway'=>'highway',
+            'hvn'=>'haven','hts'=>'heights','ht'=>'heights','hrbor'=>'harbor','holws'=>'hollow','holw'=>'hollow',
+            'hollows'=>'hollow','hollow'=>'hollow','hls'=>'hills','hllw'=>'hollow','hl'=>'hill','hiwy'=>'highway',
+            'hiway'=>'highway','hills'=>'hills','hill'=>'hill','highwy'=>'highway','highway'=>'highway','hbr'=>'harbor',
+            'haven'=>'haven','harbr'=>'harbor','harbors'=>'harbors','harbor'=>'harbor','harb'=>'harbor','gtwy'=>'gateway',
+            'gtway'=>'gateway','grv'=>'grove','groves'=>'groves','grove'=>'grove','grov'=>'grove','grn'=>'green','greens'=>'greens',
+            'green'=>'green','grdns'=>'gardens','grdn'=>'garden','grden'=>'garden','gln'=>'glen','glens'=>'glens','glen'=>'glen',
+            'gdns'=>'gardens','gatway'=>'gateway','gatewy'=>'gateway','gateway'=>'gateway','gardn'=>'garden','gardens'=>'gardens',
+            'garden'=>'garden','fwy'=>'freeway','ft'=>'fort','fry'=>'ferry','frwy'=>'freeway','frway'=>'freeway','frt'=>'fort',
+            'frst'=>'forest','frry'=>'ferry','frks'=>'forks','frk'=>'fork','frg'=>'forge','freewy'=>'freeway','freeway'=>'freeway',
+            'frd'=>'ford','fort'=>'fort','forks'=>'forks','fork'=>'fork','forges'=>'forges','forge'=>'forge','forg'=>'forge',
+            'forests'=>'forest','forest'=>'forest','fords'=>'fords','ford'=>'ford','flts'=>'flats','flt'=>'flat','fls'=>'falls',
+            'flds'=>'fields','fld'=>'field','flats'=>'flats','flat'=>'flat','fields'=>'fields','field'=>'field','ferry'=>'ferry',
+            'falls'=>'falls','fall'=>'fall','exts'=>'extensions','extnsn'=>'extension','extn'=>'extension','extension'=>'extension',
+            'ext'=>'extension','expy'=>'expressway','expw'=>'expressway','expressway'=>'expressway','express'=>'expressway',
+            'expr'=>'expressway','exp'=>'expressway','ests'=>'estates','estates'=>'estates','estate'=>'estate','est'=>'estate',
+            'dvd'=>'divide','dv'=>'divide','drv'=>'drive','drives'=>'drives ','drive'=>'drive','driv'=>'drive','dr'=>'drive',
+            'dm '=>'dam','dl '=>'dale','divide'=>'divide','div'=>'divide','dam '=>'dam','dale '=>'dale','cv'=>'cove',
+            'curve '=>'curve ','cts'=>'courts','ctr'=>'center','ct'=>'court','cswy'=>'causeway','crssng '=>'crossing',
+            'crsnt'=>'crescent','crsent'=>'crescent','crse'=>'course','crossroads'=>'crossroads','crossroad'=>'crossroad',
+            'crossing '=>'crossing','crk'=>'creek','crest'=>'crest','crescent'=>'crescent','cres'=>'crescent','creek'=>'creek',
+            'crcle'=>'circle','crcl'=>'circle','cpe'=>'cape','cp'=>'camp','coves'=>'coves','cove'=>'cove','courts'=>'courts',
+            'court'=>'court','course'=>'course','cors'=>'corners','corners'=>'corners','corner'=>'corner','cor'=>'corner',
+            'commons'=>'commons','common'=>'common','cnyn'=>'canyon','cntr'=>'center','cnter'=>'center','cmp'=>'camp','club'=>'club',
+            'cliffs'=>'cliffs','cliff'=>'cliff','clfs'=>'cliffs','clf'=>'cliff','clb'=>'club','circles'=>'circles','circle'=>'circle',
+            'circl'=>'circle','circ'=>'circle','cir'=>'circle','centre'=>'center','centr'=>'center','centers '=>'centers',
+            'center'=>'center','cent'=>'center','cen'=>'center','causwa'=>'causeway','causeway'=>'causeway','cape'=>'cape',
+            'canyon'=>'canyon','canyn'=>'canyon','camp'=>'camp','byps'=>'bypass','bypass'=>'bypass','bypas'=>'bypass','bypa'=>'bypass',
+            'byp'=>'bypass','burgs'=>'burgs','burg'=>'burg','btm'=>'bottom','brooks '=>'brooks','brook'=>'brook','brnch'=>'branch',
+            'brk'=>'brook','bridge'=>'bridge','brg'=>'bridge','brdge'=>'bridge','branch'=>'branch','br'=>'branch','boulv'=>'boulevard',
+            'boulevard '=>'boulevard','boul'=>'boulevard','bottom'=>'bottom','bottm'=>'bottom','bot'=>'bottom','bnd'=>'bend',
+            'blvd'=>'boulevard','bluffs '=>'bluffs','bluff'=>'bluff','bluf'=>'bluff','blf'=>'bluff','bend'=>'bend','beach'=>'beach',
+            'bch'=>'beach','bayou'=>'bayou','bayoo'=>'bayou','avnue'=>'avenue','avn'=>'avenue','avenue'=>'avenue','avenu'=>'avenue',
+            'aven'=>'avenue','ave'=>'avenue','av'=>'avenue','arcade '=>'arcade','arc '=>'arcade','anx'=>'anex','annx'=>'anex',
+            'annex'=>'anex','anex'=>'anex','aly'=>'alley','ally'=>'alley','alley'=>'alley','allee'=>'alley'};
+        
+        // Lowercase everything     
+        String streetAddress = street.toLowerCase();
+        String projectName = projName.toLowerCase();
+        String cityName = city.toLowerCase();
+        String stateName = state.toLowerCase();
+        
+        
+        // Remove abbreviations, non-alphanumeric characters
+		Pattern nonAlphanumeric = Pattern.compile('[^a-zA-Z0-9 ]');
+        String cleanStreetAddress = nonAlphanumeric.matcher(streetAddress).replaceAll('');  
+        String cleanProjectName = nonAlphanumeric.matcher(projectName).replaceAll('');
+        String cleanCityName = nonAlphanumeric.matcher(cityName).replaceAll('');
+        String cleanStateName = nonAlphanumeric.matcher(stateName).replaceAll('');
+        
+        // Split and then keep only portions of each string
+        List<string> splitStreetAddress = cleanStreetAddress.split(' ', 0);
+        List<string> splitProjectName = cleanProjectName.split(' ',0);
+        List<string> splitCityName = cleanCityName.split(' ',0);
+        List<string> splitStateName = cleanStateName.split(' ',0);
+                
+        //iterate over lists of items in each name, remove abbreviations, 
+        //and select only a portion of each name
+          
+        //iterate over the list of lists
+        //depending on which iteration we are on select the appropriate characters, items
+        //
+        
+        List<List<String>> nameList = new List<List<String>>();
+        nameList.add(splitStreetAddress);
+        nameList.add(splitProjectName);
+        nameList.add(splitCityName);
+        nameList.add(splitStateName);        
+        
+        List<string> keptWords = new List<string>();
+        
+        integer listSize = nameList.size();
+        for(integer i=0, j=0; i<listSize;i++){
+            integer subListSize = nameList[i].size(); 
+            integer addressCounter = 0;
+            integer projectNameCounter = 0;
+            integer cityCounter = 0;
+            for(integer n=0,p=0;n<subListSize;n++){
+                //if i==1 (or looking at splitStreetAddress) then only winnow out 
+                //all abbreviations and keep just first five characters
+                if(i==0){
+                    if(!stopWords.containsKey(splitStreetAddress.get(n))){
+                        if(addressCounter<2){
+                            addressCounter = addressCounter +1;
+                            keptWords.add(splitStreetAddress.get(n).left(5));
+                        }
+                    } 
+                }
+                // splitProjectName
+                if(i==1){
+                    if(!stopWords.containsKey(splitProjectName.get(n))){
+                        if(projectNameCounter<2){
+                            projectNameCounter = projectNameCounter + 1;
+                            keptWords.add(splitProjectName.get(n).left(6));
+                        }
+                    }
+                }
+                // splitCityName
+                if(i==2){
+                    if(!stopWords.containsKey(splitCityName.get(n))){
+                        if(cityCounter<2){
+                            cityCounter = cityCounter + 1;
+                            keptWords.add(splitCityName.get(n).left(6));
+                        }
+                    }
+                }
+                // splitStateName
+                if(i==3){
+                    if(!stopWords.containsKey(splitStateName.get(n))){
+                        if(n<2){
+                            keptWords.add(splitStateName.get(n).left(2));
+                        }
+                    }
+                }
+            }
+        }
+        
+       //concatenate all keptWords together
+       //
+       	integer keptWordListLength = keptWords.size();
+        string levenString = '';
+        for(integer i=0,j=0;i<keptWordListLength;i++){
+            levenString = levenString + keptWords.get(i);
+        }
+        
+        return levenString;	      
+    } 
+  
+ /*   
     public static SERH_Data__C constructDataRecord(projectJSON2Apex.aProjectJSON2Apex bProject, planJson2Apex.aPlanJson2Apex rplan, analysisJson2Apex.pAnalysisJson2Apex bsIsAnalysisResults,  analysisJson2Apex.pAnalysisJson2Apex RefAnalysisResults,  analysisJson2Apex.pAnalysisJson2Apex DesAnalysisResults, String arecordType) {
 
         projectJSON2Apex.aProjectJSON2Apex qProject = bProject;
@@ -499,75 +656,6 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         return serhRecord;
     }
 
-    public static Inspections__c constructInspectionRecord(ID projectID) {
-        Project__c projectRecord;
-        projectRecord = [SELECT HERS_Rater__c, Project_Status__c, Name, EC_Registration_Date__c, Energy_STAR_v3__c FROM Project__c WHERE ID = :projectID];
-        projectRecord.Project_Status__c = 'Pending Review';
-        update projectRecord;
-        string year;
-        if(projectRecord.EC_Registration_Date__c != null){
-            year = String.valueOf(projectRecord.EC_Registration_Date__c.year()); //
-        } else {
-            year = String.valueOf(datetime.now().year());
-        }
-
-        boolean estar = false;
-
-        if(projectRecord.Energy_Star_v3__c == 'Pass' || projectRecord.Energy_Star_v3__c == 'Certified'){
-            estar = true;
-        }
-        Inspections__c inspectionRecord = new Inspections__c(
-            Project__c = projectID,
-            Project_Temporary_Name__c = projectRecord.Name,
-            QA_Year_SERH__c = year,
-            HERS_Rater_Name_SERH__c = projectRecord.HERS_Rater__c,
-            Status__c = 'New',
-            Energy_STAR__c = estar,
-            RecordTypeId = '0120B0000005kLZQAY'
-        );
-
-        return inspectionRecord;
-	}
-
-    public static Inspections__c constructAutoQaRecord(projectJSON2Apex.aProjectJSON2Apex project) {
-        Project__c projectRecord;
-        List<recordtype> recordTypeList = [select name, id from recordtype where name= 'Auto QA' and sobjecttype = 'Inspections__c'];
-        id recordId = recordTypeList.get(0).id;
-
-        list<Inspections__c> inspectionRecordList;
-        //projectRecord = [SELECT HERS_Rater__c, Name, EC_Registration_Date__c, Energy_STAR_v3__c FROM Project__c WHERE ID = :projectID];
-
-        inspectionRecordList = [SELECT Project_Temporary_Name__c, Status__c FROM Inspections__c WHERE RecordTypeId = :recordId and Project__r.Ekotrope_ID__c = :project.id];
-        
-        // return a list that is an empty
-        Inspections__c inspectionRecord;
-        if(inspectionRecordList.size() == 0){
-
-            //create an inspection
-            inspectionRecord = null;
-            string year;
-            year = String.valueOf(datetime.now().year());
-
-            inspectionRecord = new Inspections__c(
-                //Project__c = projectID,
-                Project_Temporary_Name__c = project.location.streetAddress.abbreviate(80), 
-                QA_Year_SERH__c = year,
-                //HERS_Rater_Name_SERH__c = projectRecord.HERS_Rater__c,
-                Status__c = 'Ready for Review',
-                //Energy_STAR__c = estar,
-                RecordTypeId = recordId,
-                Date_of_Inspection__c = date.today()
-            );
-
-
-        }else{
-            inspectionRecord = inspectionRecordList[0];
-        }
-
-      return inspectionRecord;
-
-	}
-    
    
     
     public static string setProjectStatus(projectJSON2Apex.aProjectJSON2Apex bProject, planJson2Apex.aPlanJson2Apex rplan, String updateStatus, String initialStatus){
@@ -750,7 +838,7 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
 
     */
    
-        public static HttpResponse getProjectList(String authorization, String statusType){
+    public static HttpResponse getProjectList(String authorization, String statusType){
         //Get list of projects from ekotrope that have stage: statusType
         //    -statusType options are: Registered with Resnet, Submitted for QA, Shared with Provider, unregistered
         //    -This queries ekotrope for a project list
@@ -1014,12 +1102,17 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         //SF projects  - just like SERH
         //
         //
-        //THis gets SF and MF-Shadow
+        //This gets SF and MF-Shadow that are already connected for the list to compare the Ekotrope Project List Results against
         for(Unit_Takeoff__c existingProject : [Select Ekotrope_ID__c, Ekotrope_selfOrPlanLastSavedAt__c, ID, Name   
                                             	FROM Unit_Takeoff__c
                                            		WHERE Ekotrope_ID__c != null]) //and RecordTypeId='??????????????????'
-        {existingViridiantProjectsMap.put(existingProject.Ekotrope_ID__c, existingProject.Ekotrope_selfOrPlanLastSavedAt__c);}
+        {
+            existingViridiantProjectsMap.put(existingProject.Ekotrope_ID__c, existingProject.Ekotrope_selfOrPlanLastSavedAt__c);       
+        }
     
+        //iterate through the requested ekotrope stages and query the getProjectList API endpoint
+        //For each response, check to see if salesforce has the ekotrope project
+        //if it does, check to see if needs to be updated. if it doesn't, add the project to database
         for(string ekoStage : ekotropeStages){
             if(test.isRunningTest()){Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpProjListCallout());}  
             HttpResponse projectListResponse = ekotropeSync.getProjectList(authorization, ekoStage);        
@@ -1027,8 +1120,7 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
                 String newProjectList = String.valueOf(projectListResponse.getBody());
                 if(projectListResponse.getBody() != ''){
                     newResults = (List<Object>)JSON.deserializeUntyped(newProjectList);
-                    //iterate over the projects in Ekotrope 
-                   
+                    //iterate over the projects in Ekotrope           
                     for(Object project : newResults){
                         Map<String, Object> projectData = (Map<String, Object>)project;
                         List<String> updateStatusList = new List<String>();
@@ -1036,15 +1128,15 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
                         if(existingViridiantProjectsMap.get(String.valueOf(projectData.get('id')))==null){
                             //ekotrope id does not exist in salesforce. so we add it to the add list
                             //we do not know if it is sf or mf. We add the mf projects to the shadow data structure
-                            
-                            projectIdList.add(String.valueOf(projectData.get('id')));    
+                            globalProjectUpdateStatusList.put(String.valueOf(projectData.get('id')), 'create-project');
+                            //projectIdList.add(String.valueOf(projectData.get('id')));    
                         } //If the id exists, then we check to see if it has changed
                         else {
                             if(projectData.get('selfOrPlanLastSavedAt') != existingViridiantProjectsMap.get(String.valueOf(projectData.get('id')))){
-                               projectIdList.add(String.valueOf(projectData.get('id'))); 
+                                //projectIdList.add(String.valueOf(projectData.get('id'))); 
+                                globalProjectUpdateStatusList.put(String.valueOf(projectData.get('id')), 'update-project');
                             }
-                        }
-                        
+                        }     
                     }
                 } else{
                     system.debug('getProjectList returned a blank body');
@@ -1054,12 +1146,13 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
                     }
                 }
             } else{
+                system.debug('getProjectList returned a non-200 status');
+                system.debug(projectListResponse.getBody());
                 if(!Test.isRunningTest()){
                     Log__c errorLog = constructErrorLog('getProjectList','getProjectList', projectListResponse, ekoStage, projectListResponse.getBody());
                     errorLogs.add(errorLog);
-                return projectIdList; 
                 }
-            }
+            } 
         }
  
         
@@ -1068,164 +1161,212 @@ global class ekotropeSync implements Database.Batchable<String>, Database.Allows
         // We pass the ekoIds to execute. In execute the first thing that
         // happens is matching (after we determine MF, SF)
         
+        projectIdList.addAll(globalProjectUpdateStatusList.keySet()); 
         
-        insert errorLogs;
+        //insert errorLogs;
         return projectIdList;
     }
 
-    global void execute(Database.BatchableContext bc, List<String> projectsToUpdate){}
-    global void finish(Database.BatchableContext bc){}
-    
-    /*   
-    global Iterable<String> start(Database.BatchableContext bc){
-        // Get list of all existing projects in salesforce and then get all projects from ekotrope
-        //    Compare the two lists and determine which projects do not exist in salesforce and which 
-        //    projects need to be updated in salesforce. 
-
-        //    This method creates an iterable (list named projectIdList) which is passed to the execute 
-        //    method which iterates over list and completes the rest of the function on batches of the list. 
-
-       //     This method also creates a Map (globalProjectUpdateStatusMap) that stores the project id 
-       //     and update status for each project in the projectIdList. 
-
-       //     Change: 
-       ///         Will need query ECMF project records to get the Ekotrope IDs of existing projects. These
-       //         projects will be upserted as necessary. Give them a special status in the 
-        //        globalProjectUpdateStatusMap to indicate template projects. 
-         //
-
+    global void execute(Database.BatchableContext bc, List<String> projectsToUpdate){
+        /*
+         * first get all information for everything
+         * Lots of work to be done here! 
+         * Will need to build separate lists of projects to process based on the following: 
+			- single family and multi-family
+            - EarthCraft
+            - Existing projects in salesforce
+            - other programs??
+		*/
         
-        
-        system.debug('ekotropeSync.start Start: '+ Limits.getCpuTime());
-
-        //
-        //Change:
-        //    -Project__c --> HERS Data Field
-       //     -RecordTypeId --> to new id
-         //
-        for(Project__c existingProject : [Select Ekotrope_ID__c, Ekotrope_selfOrPlanLastSavedAt__c
-                                            FROM Project__c
-                                            WHERE Ekotrope_ID__c != null and RecordTypeId='0120B000000t8JVQAY'])
-        {existingViridiantProjectsMap.put(existingProject.Ekotrope_ID__c, existingProject.Ekotrope_selfOrPlanLastSavedAt__c);}
-
-
-
-        //  Get list of projects from ekotrope that have the stages listed in ekotropeStages list
-        //  This will usually be submitted_for_QA, Registered_with_RESNET
-
-        for(string ekoStage : ekotropeStages){
-            if(test.isRunningTest()){Test.setMock(HttpCalloutMock.class, new YourHttpUpdaterProj());}
-            
-            HttpResponse projectListResponse = ekotropeSync.getProjectList(authorization, ekoStage);
-   
-           // Check to see if the projectListResponse was successful (status code 200)
-           //     -If it was successful: 
-           //         -determine which projects do not exist in salesforce
-           //         -label these projects with the appropriate labels to indicate next action (update, group, etc)
-           //     -Else: 
-           //         -Create an error log reporting this failure
-           //  
-            if(projectListResponse.getStatusCode() == 200){
-                String newProjectList = String.valueOf(projectListResponse.getBody());    
-                if(projectListResponse.getBody() != ''){
-                    system.debug('getProjectList returned full body');
-                    newResults = (List<Object>)JSON.deserializeUntyped(newProjectList);                    
-                    for(Object project : newResults){
-                        Map<String,Object> projectData = (Map<String,Object>)project;
-                        List <String> updateSatusList = new List<String>();
-                        // Check to see if the projects from ekotrope exist in salesforce
-                        //    -If it doesn't( projectData.get('id')==null) add the id to projectIdList which will create the project in salesforce
-                         //   -If it does, check to see if it ekotrope model has been changed recently and update accordingly 
-                        //
-                        if (existingViridiantProjectsMap.get(String.valueOf(projectData.get('id'))) == null) {
-                            projectIdList.add(String.valueOf(projectData.get('id')));
-                            updateSatusList.add('update status');
-                            updateSatusList.add(ekoStage);//ekoStage
-                            globalProjectUpdateStatusMap.put(String.valueOf(projectData.get('id')),updateSatusList);
-                        } else  {
-                            if(data.get('selfOrPlanLastSavedAt') != existingViridiantProjectsMap.get(String.valueOf(projectData.get('id')))){
-                                projectIdList.add(String.valueOf(projectData.get('id')));
-                                updateSatusList.add('no status update');
-                                updateSatusList.add(ekoStage);//ekoStage
-                                globalProjectUpdateStatusMap.put(String.valueOf(projectData.get('id')),updateSatusList);
-                            }   
-                        }
-                    }
-                }else{
-                    system.debug('getProjectList returned blank body');
-                    if(!Test.isRunningTest()){
-                        Log__c errorLog = constructErrorLog('getProjectList','getProjectList', projectListResponse, ekoStage, projectListResponse.getBody());
-                        errorLogs.add(errorLog);
-                    }   
-                }  
-            }else{
-                if (!Test.isRunningTest()){
-                    Log__c errorLog = constructErrorLog('getProjectList','getProjectList', projectListResponse, ekoStage, projectListResponse.getBody());
-                    errorLogs.add(errorLog);
-                return projectIdList; 
-                }   
-            }                           
-        }
-        insert errorLogs;
-        return projectIdList;
-    }
-
-    global void execute(Database.BatchableContext bc, List<String> projectsToUpdate){   
-        //
-        //    Lots of work to be done here! 
-
-       //     Will need to build separate lists of projects to process based on the following: 
-    //            - single family and multi-family
-    //            - EarthCraft
-     //           - Existing projects in salesforce
-      //          - other programs??
-        
-         
-
         system.debug('ekotropeSync.execute Start: '+Limits.getCpuTime());
         
         
+        List<Project__c> addProjects = new List<Project__c>();
         List<Log__c> errorLogs = new List<Log__c>();
         List<string> autoQaList = new List<string>();
-        List<Inspections__c> autoQaRecordList = new List<Inspections__c>();
+        //List<Inspections__c> autoQaRecordList = new List<Inspections__c>();
         String raterId = null;
         String RFI_Rater = null;
         String project_status = null;
-
-
-        // 
-//            Get all raters in Viridiant and their RESNET ID Number. This is to get correct File and Field QA
-  //          counts and to add correct contact information to each project
-
-    //        Change: 
-      //          -This will query the Contact and not the Qualifications record         
+        
+        /* 
+         * Get all raters in Viridiant and their RESNET ID Number. This is to get correct File and Field QA
+         * counts and to add correct contact information to each project
+         * Change: 
+			-This will query the Contact and not the Qualifications record 
+		
+        
+            for(Qualifications_del__c existingContact : [
+                Select Qualifications_for__c,
+                HERS_RTIN_Rater_Identification_Number__c
+                FROM Qualifications_del__c
+                WHERE HERS_RTIN_Rater_Identification_Number__c != null ])
+            {raterMap.put(existingContact.HERS_RTIN_Rater_Identification_Number__c, existingContact.Qualifications_for__c);}
+                
+                
+            // Get all organizations or accounts that have an Ekotrope ID and put in Map. This is to assign correct
+            // billing information
+            for(Account existingAccounts : [Select Ekotrope_ID__c, Id FROM Account WHERE Ekotrope_ID__c != ''])
+            {accountsMap.put(existingAccounts.Ekotrope_ID__c, existingAccounts.Id);}
+		*/
+        
+        /*
+         * Iterate thru all projects in projectsToUpdate list. For each project determine what needs to be done
+         * Options: 
+            - Ekotrope ID is in salesforce --> update project
+            - Ekotrope ID is not in salesforce: 
+                - SF: 
+                    - Try to find it based on match algorithm:
+                    - If we can find it then suggest match
+                    - If we can't find it: then create new project  
+                - MF: 
+					- Create the project
+					- might consider only grabbing Registered with Resnet projects
+					- attempt to group
+					
+		*/
+        
+        //get all projects in salesforce that does not have an Ekotrope_ID__c and 
+        //determine if any of them are likely mathces to the new projects
         //
-
-        for(Qualifications_del__c existingContact : [
-            Select Qualifications_for__c,
-            HERS_RTIN_Rater_Identification_Number__c
-            FROM Qualifications_del__c
-            WHERE HERS_RTIN_Rater_Identification_Number__c != null ])
-        {raterMap.put(existingContact.HERS_RTIN_Rater_Identification_Number__c, existingContact.Qualifications_for__c);}
+        //can use projects for sf but for mf would want to use unit types --- this is onlyf
+        //for sf 
+        map<string, string> existingProjects = new map<string, string>();
+        for(Project__c existingProject : [Select name, id, zip_code__c, state__c, 
+                                          city__c, street_address__c   
+                                            	FROM Project__c]) //and RecordTypeId='??????????????????'
+        {
+            String projName, street, city, state;
+            projName = existingProject.name;
+            street = existingProject.street_address__c;
+            city = existingProject.city__c;
+            state = existingProject.state__c;
+            string lechString = normalizeLechString(projName, street, city, state);        
+            existingProjects.put(existingProject.id, lechString);       
+        }
+        
+        //normalizeLechString
+        
+        for(String projectId:projectsToUpdate){
+            // first get all of the necessary information from ekotrope
             
+            if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpProjectCallout() );}           
+            HttpResponse projectResponse = ekotropeSync.getProject(authorization, projectId);
+            system.debug(projectResponse.getBody());
             
-        // Get all organizations or accounts that have an Ekotrope ID and put in Map. This is to assign correct
-        // billing information
-        for(Account existingAccounts : [Select Ekotrope_ID__c, Id FROM Account WHERE Ekotrope_ID__c != ''])
-        {accountsMap.put(existingAccounts.Ekotrope_ID__c, existingAccounts.Id);}
+            if(projectResponse.getStatusCode() == 418){
+                system.debug('Project has status code 418: '+projectId);
+                system.debug(projectResponse.getBody());
+                Log__c errorLog = ekotropeSync.constructErrorLog('getProject','getProject', projectResponse, projectId, projectResponse.getBody());  
+                errorLogs.add(errorLog);
+            } else if(projectResponse.getStatusCode() == 200){
+                String newProject = String.valueOf(projectResponse.getBody());
+                projectJSON2Apex.aProjectJSON2Apex qProject = projectJSON2Apex.parse(newProject);
 
-        //
-//            Iterate thru all projects in projectsToUpdate list. For each project determine what needs to be done
-  //          Options: 
-    //            - Ekotrope ID is in salesforce --> update project
-      //          - Ekotrope ID is not in salesforce: 
-        //            - SF: 
-          //              -Try to find it based on match algorithm:
-            //                - IF we can find it then suggest match
-              //              - If we can't find it: then create new project  
-                //    - MF: 
-                  //      - 
-        //
+              
+                //if this is a test method we need to set the appropriate mock class
+                if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpDesignCallout() ); }
+                system.debug(qProject.masterPlanId);
+                HttpResponse planResponse = ekotropeSync.getHousePlan(authorization, qProject.masterPlanId);  
+                system.debug(planResponse.getBody());
+                //if this is a test method we need to set the appropriate mock class
+                if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpAnalysisCallout() ); }
+                HttpResponse analysisResponse = ekotropeSync.getHousePlanAnalysis(authorization, qProject.masterPlanId, 'EkotropeAsModeled', codesToCheck);
+                system.debug(analysisResponse.getBody());
+                //if this is a test method we need to set the appropriate mock class
+                if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpAnalysisCallout() ); }
+                HttpResponse ReferenceAnalysisResponse = ekotropeSync.getHousePlanAnalysis(authorization, qProject.masterPlanId, 'HERSReference', codesToCheck);
+                system.debug(ReferenceAnalysisResponse.getBody());
+                //if this is a test method we need to set the appropriate mock class
+                if (Test.isRunningTest()) {Test.setMock(HttpCalloutMock.class, new ekotropeMockHttpAnalysisCallout() ); }
+                HttpResponse DesignanalysisResponse = ekotropeSync.getHousePlanAnalysis(authorization, qProject.masterPlanId, 'HERSRated', codesToCheck);
+				system.debug(DesignanalysisResponse.getBody());
+              
+                //Complete the response parsing and record creation only if all HTTP callouts were successful
+                if(planResponse.getStatusCode() == 200 && analysisResponse.getStatusCode() == 200 && ReferenceAnalysisResponse.getStatusCode() == 200 && DesignanalysisResponse.getStatusCode() == 200){
+                    String plan = String.valueOf(planResponse.getBody());
+                    planJson2Apex.aPlanJson2Apex qplan = planJson2Apex.parse(plan);
+                    String AsIsAnalysis = String.valueOf(analysisResponse.getBody());
+                    analysisJson2Apex.pAnalysisJson2Apex AsIsAnalysisResults = analysisJson2Apex.parse(AsIsAnalysis);                
+                    String ReferenceAnalysis = String.valueOf(ReferenceAnalysisResponse.getBody());
+                    analysisJson2Apex.pAnalysisJson2Apex ReferencenalysisResults = analysisJson2Apex.parse(ReferenceAnalysis);
+                    String DesignAnalysis = String.valueOf(DesignanalysisResponse.getBody());
+                    analysisJson2Apex.pAnalysisJson2Apex DesignAnalysisResults = analysisJson2Apex.parse(DesignAnalysis);
+                    system.debug(Limits.getCpuTime());
+                    
+                    if(globalProjectUpdateStatusList.get(projectId) == 'update-project'){
+                        // construct the records
+                        // add them to an update list
+                    } else{ 
+                        //create a new project and do something
+                        //addProjects.add()
+                        //matchString.put(project.id, <empty list>)
+                        
+                        /*
+                         * Options: 
+                            - Ekotrope ID is not in salesforce:
+							- Add the project to an add list
+                                - SF: 
+                                    - Create project, give it a status that designates it as a projec that needs 
+											to be matched. The wrapper class that visualize match oppportunities
+											does the matching. 
+									- Try to find it based on match algorithm:
+                                    - If we can find it then suggest match
+                                    - If we can't find it: then create new project  
+                                - MF: 
+                                    - Create the project
+                                    - might consider only grabbing Registered with Resnet projects
+                                    - attempt to group
+						*/                  
+                    }             
+                } // not all callouts were successfull
+                else{
+                    system.debug('Not all http callouts were successfull. Project == 200, others ?');
+                    if(planResponse.getStatusCode() != 200){
+                        system.debug('planResponse code:');
+                        system.debug(planResponse.getStatusCode());
+                        Log__c errorLog = ekotropeSync.constructErrorLog('getHousePlan','getHousePlan', planResponse, projectId, planResponse.getBody());
+                        errorLogs.add(errorLog);
+                    } 
+                    if(analysisResponse.getStatusCode() != 200){
+                        system.debug('analysisResponse code:');
+                        system.debug(analysisResponse.getStatusCode());
+                        Log__c errorLog = EkotropeSync.constructErrorLog('getHousePlanAnalysis - EkotropeAsModeled','getHousePlanAnalysis', analysisResponse, projectId, analysisResponse.getBody());
+                        errorLogs.add(errorLog);
+                        
+                    } 
+                    if(ReferenceAnalysisResponse.getStatusCode() != 200){
+                        system.debug('ReferenceAnalysisResponse code:');
+                        system.debug(ReferenceAnalysisResponse.getStatusCode());
+                        Log__c errorLog = EkotropeSync.constructErrorLog('getHousePlanAnalysis - HERSReference','getHousePlanAnalysis', ReferenceAnalysisResponse, projectId, ReferenceAnalysisResponse.getBody());
+                        errorLogs.add(errorLog);
+                    } 
+                    if(DesignanalysisResponse.getStatusCode() != 200){
+                        system.debug('DesignanalysisResponse code:');
+                        system.debug(DesignanalysisResponse.getStatusCode());
+                        Log__c errorLog = EkotropeSync.constructErrorLog('getHousePlanAnalysis - HERSRated','getHousePlanAnalysis', DesignanalysisResponse, projectId, DesignanalysisResponse.getBody());
+                        errorLogs.add(errorLog);
+                    }
+                } 
+            } // projectResponse was not statusCode == 200
+            else{
+                Log__c errorLog = EkotropeSync.constructErrorLog('getProject','getProject', projectResponse, projectId, projectResponse.getBody());
+                errorLogs.add(errorLog);
+                system.debug(projectId);
+                system.debug(projectResponse.getBody());
+            }         
+        }
+        
+        
+        
+    }
+    
+    
+    
+    global void finish(Database.BatchableContext bc){}
+    
+    /*   
+    global void execute(Database.BatchableContext bc, List<String> projectsToUpdate){   
         //check to see if any should not be auto-processed
         for(String projectId:projectsToUpdate){
             system.debug('ekotropeSync.execute - Iterating through all projects that need updating in this batch');

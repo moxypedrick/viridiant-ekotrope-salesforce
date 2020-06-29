@@ -21,7 +21,7 @@ public class analysisJson2Apex {
 						} else if (text == 'nox') {
 							nox = parser.getIntegerValue();
 						} else {
-							System.debug(LoggingLevel.WARN, 'PvOffset consuming unrecognized property: '+text);
+							////system.debug(LoggingLevel.WARN, 'PvOffset consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -62,7 +62,7 @@ public class analysisJson2Apex {
 						} else if (text == 'emissions') {
 							emissions = new Emissions(parser);
 						} else {
-							System.debug(LoggingLevel.WARN, 'pAnalysisJson2Apex consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'pAnalysisJson2Apex consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -85,7 +85,7 @@ public class analysisJson2Apex {
 						} else if (text == 'breakdown') {
 							breakdown = new Breakdown(parser);
 						} else {
-							System.debug(LoggingLevel.WARN, 'Energy consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'Energy consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -111,7 +111,7 @@ public class analysisJson2Apex {
 						} else if (text == 'targetHers') {
 							targetHers = parser.getIntegerValue();
 						} else {
-							System.debug(LoggingLevel.WARN, 'Compliance consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'Compliance consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -128,7 +128,7 @@ public class analysisJson2Apex {
 					String text = parser.getText();
 					if (parser.nextToken() != System.JSONToken.VALUE_NULL) {
 						{
-							System.debug(LoggingLevel.WARN, 'Compliance consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'Compliance consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -154,7 +154,7 @@ public class analysisJson2Apex {
 						} else if (text == 'nox') {
 							nox = parser.getDoubleValue();
 						} else {
-							System.debug(LoggingLevel.WARN, 'Heating consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'Heating consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -189,7 +189,7 @@ public class analysisJson2Apex {
 						} else if (text == 'cost') {
 							cost = parser.getDoubleValue();
 						} else {
-							System.debug(LoggingLevel.WARN, 'ByFuel consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'ByFuel consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -212,7 +212,7 @@ public class analysisJson2Apex {
 						} else if (text == 'byComponent') {
 							byComponent = arrayOfByComponent(parser);
 						} else {
-							System.debug(LoggingLevel.WARN, 'Breakdown consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'Breakdown consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -274,7 +274,7 @@ public class analysisJson2Apex {
 						} else if (text == 'generationRevenue') {
 							generationRevenue = parser.getIntegerValue();
 						} else {
-							System.debug(LoggingLevel.WARN, 'Summary consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'Summary consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -306,7 +306,7 @@ public class analysisJson2Apex {
 						} else if (text == 'pvOffset') {
 							pvOffset = new PvOffset(parser);
 						} else {
-							System.debug(LoggingLevel.WARN, 'ByEnergySink consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'ByEnergySink consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -332,7 +332,7 @@ public class analysisJson2Apex {
 						} else if (text == 'coolingLoad') {
 							coolingLoad = parser.getIntegerValue();
 						} else {
-							System.debug(LoggingLevel.WARN, 'ByComponent consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'ByComponent consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -358,7 +358,7 @@ public class analysisJson2Apex {
 						} else if (text == 'totalNox') {
 							totalNox = parser.getDoubleValue();
 						} else {
-							System.debug(LoggingLevel.WARN, 'Summary_Z consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'Summary_Z consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -381,7 +381,7 @@ public class analysisJson2Apex {
 						} else if (text == 'byEnergySink') {
 							byEnergySink = new ByEnergySink(parser);
 						} else {
-							System.debug(LoggingLevel.WARN, 'Emissions consuming unrecognized property: '+text);
+							//system.debug(LoggingLevel.WARN, 'Emissions consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}

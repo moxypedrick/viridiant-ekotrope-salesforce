@@ -9,7 +9,7 @@ public class uploadResponseJSON2Apex {
 	public String automaticQaStatus {get;set;} 
 
 	public uploadResponseJSON2Apex(JSONParser parser) {
-        System.debug(parser);
+        
 		while (parser.nextToken() != System.JSONToken.END_OBJECT) {
 			if (parser.getCurrentToken() == System.JSONToken.FIELD_NAME) {
 				String text = parser.getText();
@@ -22,7 +22,7 @@ public class uploadResponseJSON2Apex {
 					} else if (text == 'automaticQaStatus') {
 						automaticQaStatus = parser.getText();
 					} else {
-						System.debug(LoggingLevel.WARN, 'JSON2Apex consuming unrecognized property: '+text);
+						//System.debug(LoggingLevel.WARN, 'JSON2Apex consuming unrecognized property: '+text);
 						consumeObject(parser);
 					}
 				}

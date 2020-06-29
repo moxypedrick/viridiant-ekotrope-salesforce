@@ -1,0 +1,167 @@
+@IsTest
+public class projectMatchingTest {
+    static testMethod void TestPager(){
+        Building_Specifications__c placeholderBuildingSpec = new Building_Specifications__c();
+        Project__c placeHolderProject = new Project__c();
+        
+        placeHolderProject.Resnet_Registry_ID__c = 'placeHolderProjectForAuto';
+        placeHolderProject.Name = 'Placeholder Project for Ekotrope Integration';
+        placeHolderProject.Status_Multifamily__c = 'Pre-Review';
+        placeHolderProject.RecordTypeId = '012o0000000StpfAAC';
+        insert placeHolderProject;
+        
+        string placeholderProjectId = placeHolderProject.id;
+        placeholderBuildingSpec.Name = 'Placeholder Project for Ekotrope Integration';
+        placeholderBuildingSpec.Project__c = placeholderProjectId;
+        insert placeholderBuildingSpec;
+        
+        Project__c placeHolderProject2 = new Project__c();
+        
+        placeHolderProject2.Resnet_Registry_ID__c = 'placeHolderProjectForAuto';
+        placeHolderProject2.Name = 'Placeholder Project for Ekotrope Integration';
+        placeHolderProject2.Status_Multifamily__c = 'Pre-Review';
+        placeHolderProject2.RecordTypeId = '012o0000000StpfAAC';
+        placeHolderProject2.SF_Ekotrope_ID__c = 'aslj231rq';
+        insert placeHolderProject2;
+        
+        
+        
+        //bogus account
+        Account duckedEsting = new Account(Name = 'Ducked Esting');
+        Account southface = new Account(Name = 'Viridiant', Ekotrope_Password__c = 'alkj13', Ekotrope_Username__c='2nkjl');
+        insert(duckedEsting);
+        insert(southface);
+        
+        
+        list<Contact> toIns = new list<Contact>();
+        Contact estarFileNoRegFile = new Contact(RTIN_RFIN__c = '1213',FirstName = 'Bill', LastName = 'DingEnvelope',  accountid=duckedEsting.id);
+        Contact noEstarFileRegFile = new Contact(RTIN_RFIN__c = '1212', FirstName = 'Sir', LastName = 'H',  accountid=duckedEsting.id);
+        
+        toIns.add(estarFileNoRegFile);
+        toIns.add(noEstarFileRegFile);
+        
+        insert(toIns);
+        
+        
+        
+        list<inspection__c> insertInsp = new list<Inspection__c>();
+        list<Unit_Takeoff__c> insertProjects = new list<Unit_Takeoff__c>();
+        list<string> projectList = new list<string>();
+        //Id rtId5 = [SELECT Id from Recordtype where name like '%SERH Project%' limit 1][0].Id;
+        
+        //estarFileNoRegFile 
+        //one estar file
+        //one reg file qa
+        //no estar file qa
+        /*Select id, Levenshtein_String__c, Project_Option_1_Score__c, Project_Option_2_Score__c, Project_Option_3_Score__c, 
+         Project_Option_4_Score__c, Project_Option_1__c, Project_Option_2__c, Project_Option_3__c, Project_Option_4__c, 
+         Street__c, City__c, Zip_Code__c, Ekotrope_ID__c, RESNET_Registry_ID__c, State__c, Name, HERS_Rater__c, 
+         Building_Specification__c from Unit_Takeoff__c where Sync_Status__c= 'calculated' and Residence_Type__c = 'singlefamily'*/
+        
+        Unit_Takeoff__c estarFile = new Unit_Takeoff__c(
+            Building_Specification__c = placeholderBuildingSpec.id,
+            Name = '123 Main', 
+            Energy_Star_Pass__c = True,
+            Ekotrope_Id__c = 'b2JRnwW7', 
+            HERS_Rater__c = estarFileNoRegFile.id, 
+            RESNET_Registration_Date__c = date.newInstance(2018, 4, 3),
+            Sync_Status__c = 'calculated',
+            Residence_Type__c = 'singlefamily', 
+            Selected_Project_Match__c = 'Match 1',
+            Project_Option_1__c = placeHolderProject2.id,
+            Levenshtein_String__c = '1jlmkl;kjq',
+            Project_Option_1_Score__c = '0.3', 
+            Project_Option_2_Score__c = '0.34', 
+            Project_Option_3_Score__c = '0.4', 
+         	Project_Option_4_Score__c = '0.5', 
+            //Project_Option_1__c = '1234123', 
+            Project_Option_2__c = placeHolderProject2.id, 
+            Project_Option_3__c = placeHolderProject2.id, 
+            Project_Option_4__c = placeHolderProject2.id
+        );
+        /*Unit_Takeoff__c estarFile2 = new Unit_Takeoff__c(Building_Specification__c = placeholderBuildingSpec.id,Name = '123 Main', Energy_Star_Pass__c = True,Ekotrope_Id__c = 'b2JRnwW8', HERS_Rater__c = estarFileNoRegFile.id,
+                                                         Sync_Status__c = 'new',
+                                                         Residence_Type__c = 'singlefamily',
+                                                         Selected_Project_Match__c = 'Match 2',
+                                                         Project_Option_2__c = placeHolderProject.id,
+                                                         
+                                                         Levenshtein_String__c = '1jlmkl;kjq');
+        Unit_Takeoff__c estarFile3 = new Unit_Takeoff__c(Building_Specification__c = placeholderBuildingSpec.id,Name = '123 Main', Energy_Star_Pass__c = True,Ekotrope_Id__c = 'b2JRnwW9', HERS_Rater__c = estarFileNoRegFile.id,
+                                                         Sync_Status__c = 'new',
+                                                         Residence_Type__c = 'singlefamily',
+                                                         Selected_Project_Match__c = 'Match 3',
+                                                         Project_Option_3__c = placeHolderProject.id,
+                                                         Levenshtein_String__c = '1jlmkl;kjq');
+        Unit_Takeoff__c estarFile4 = new Unit_Takeoff__c(Building_Specification__c = placeholderBuildingSpec.id,Name = '123 Main', Energy_Star_Pass__c = True,Ekotrope_Id__c = 'b2JRnw19', HERS_Rater__c = estarFileNoRegFile.id,
+                                                         Sync_Status__c = 'matched',
+                                                         Residence_Type__c = 'singlefamily', Selected_Project_Match__c = 'Match 4',
+                                                         Project_Option_4__c = placeHolderProject.id,
+                                                         Levenshtein_String__c = '1jlmkl;kjq');
+        
+        
+        Unit_Takeoff__c estarFile5 = new Unit_Takeoff__c(Building_Specification__c = placeholderBuildingSpec.id,Name = '123 Main', Energy_Star_Pass__c = True,Ekotrope_Id__c = 'b2JRnw29', HERS_Rater__c = estarFileNoRegFile.id,
+                                                         Sync_Status__c = 'create',
+                                                         Residence_Type__c = 'singlefamily',
+                                                         Levenshtein_String__c = '1jlmkl;kjq');
+        */
+        insertProjects.add(estarFile);
+        //insertProjects.add(estarFile2);
+        //insertProjects.add(estarFile3);
+        //insertProjects.add(estarFile4);
+        //insertProjects.add(estarFile5);
+        
+        insert insertProjects;
+        
+        
+        list<Project__c> insertProjectsReally = new list<Project__c>();
+        
+        Project__c project1 = new Project__c(
+            Resnet_Registry_ID__c = 'placeHolderProjectForAuto',
+            Name = 'Placeholder Project for Ekotrope Integration',
+            Status_Multifamily__c = 'Pre-Review',
+            RecordTypeId = '012o0000000StpfAAC',
+            Project_Type_del__c = 'Single Family',
+            Levenshtein_String__c = '1jlmkl;kjq'
+        );
+        
+        Project__c project2 = new Project__c(
+            Resnet_Registry_ID__c = 'placeHolderProjectForAuto',
+            Name = 'Placeholder Project for Ekotrope Integration',
+            Status_Multifamily__c = 'Pre-Review',
+            RecordTypeId = '012o0000000StpfAAC',
+            Project_Type_del__c = 'Single Family',
+            Levenshtein_String__c = '1oj12jl'
+        );
+        
+        Project__c project3 = new Project__c(
+            Resnet_Registry_ID__c = 'placeHolderProjectForAuto',
+            Name = 'Placeholder Project for Ekotrope Integration',
+            Status_Multifamily__c = 'Pre-Review',
+            RecordTypeId = '012o0000000StpfAAC',
+            Project_Type_del__c = 'Single Family',
+            Levenshtein_String__c = 'asdflk12'
+        );
+        
+        insertProjectsReally.add(project1);
+        insertProjectsReally.add(project2);
+        insertProjectsReally.add(project3);
+        insert insertProjectsReally;
+        
+        Test.startTest();
+            projectMatching clss3 = new projectMatching();
+            System.Debug(clss3.getUnitTakeoffs().size());
+            if(clss3.getUnitTakeoffs().size() > 0){
+                clss3.getUnitTakeoffs()[0].checked2 = true;
+            } 
+            
+            clss3.assign();
+        clss3.refresh();
+           
+       
+       Test.stopTest();
+        
+        
+        
+    }
+
+}

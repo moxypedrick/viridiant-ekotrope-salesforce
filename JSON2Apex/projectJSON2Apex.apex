@@ -18,7 +18,7 @@ public class projectJSON2Apex {
 						} else if (text == 'moistureRegime') {
 							moistureRegime = parser.getText();
 						} else {
-							System.debug(LoggingLevel.WARN, 'ClimateZone consuming unrecognized property: '+text);
+							//System.debug(LoggingLevel.WARN, 'ClimateZone consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -41,7 +41,7 @@ public class projectJSON2Apex {
 						} else if (text == 'name') {
 							name = parser.getText();
 						} else {
-							System.debug(LoggingLevel.WARN, 'UtilityRates consuming unrecognized property: '+text);
+							//System.debug(LoggingLevel.WARN, 'UtilityRates consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -73,7 +73,7 @@ public class projectJSON2Apex {
 						} else if (text == 'ratingCompany') {
 							ratingCompany = new RatingCompany(parser);
 						} else {
-							System.debug(LoggingLevel.WARN, 'Rater consuming unrecognized property: '+text);
+							//System.debug(LoggingLevel.WARN, 'Rater consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -111,7 +111,7 @@ public class projectJSON2Apex {
 						} else if (text == 'associatedUsers') {
 						associatedUsers = arrayOfAssociatedUsers(parser);
 						} else {
-							System.debug(LoggingLevel.WARN, 'HersRatingDetails consuming unrecognized property: '+text);
+							//System.debug(LoggingLevel.WARN, 'HersRatingDetails consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -191,7 +191,7 @@ public class projectJSON2Apex {
 						} else if (text == 'algorithmVersion') {
 							algorithmVersion = parser.getText();
 						} else {
-							System.debug(LoggingLevel.WARN, 'ProjectJSON2Apex consuming unrecognized property: '+text);
+							//System.debug(LoggingLevel.WARN, 'ProjectJSON2Apex consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -214,7 +214,7 @@ public class projectJSON2Apex {
 						} else if (text == 'id') {
 							id = parser.getText();
 						} else {
-							System.debug(LoggingLevel.WARN, 'RatingCompany consuming unrecognized property: '+text);
+							//System.debug(LoggingLevel.WARN, 'RatingCompany consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}
@@ -244,7 +244,7 @@ public class projectJSON2Apex {
                             resnetRaterId = parser.getText();
                         } 
                         else {
-							System.debug(LoggingLevel.WARN, 'AssociatedUsers consuming unrecognized property: '+text);
+							//System.debug(LoggingLevel.WARN, 'AssociatedUsers consuming unrecognized property: '+text);
 							consumeObject(parser);
 						} 
 					}
@@ -276,7 +276,7 @@ public class projectJSON2Apex {
 						} else if (text == 'climateZone') {
 							climateZone = new ClimateZone(parser);
 						} else {
-							System.debug(LoggingLevel.WARN, 'Location consuming unrecognized property: '+text);
+							//System.debug(LoggingLevel.WARN, 'Location consuming unrecognized property: '+text);
 							consumeObject(parser);
 						}
 					}

@@ -1,5 +1,5 @@
 @IsTest
-global class YourHttpPutCalloutMockImpl implements HttpCalloutMock{
+global class ekotropePutCalloutMock implements HttpCalloutMock{
     global HTTPResponse respond(HTTPRequest req){
         // Create a fake response
         
@@ -20,7 +20,7 @@ global class YourHttpPutCalloutMockImpl implements HttpCalloutMock{
         }
         else{
             res.setHeader('Content-Type', 'application/json');
-            res.setBody('{"registryId":"241pInE", "rawRegistryResponse":"yaGotIt", "automaticQaStatus":"Pass", "errorMessage":"happiness"}');
+            res.setBody('{"registryId":null, "rawRegistryResponse":"yaGotIt", "automaticQaStatus":"Pass", "errorMessage":"happiness"}');
             res.setStatusCode(200);
             return res;      
     	}
